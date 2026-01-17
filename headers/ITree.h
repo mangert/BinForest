@@ -16,7 +16,7 @@ public:
 
     // Состояние
     virtual bool is_empty() const = 0;
-    //virtual std::size_t size() const = 0;
+    virtual size_t size() const = 0;    
 
     // Обходы
     //virtual std::vector<T> inorder() const = 0;
@@ -25,7 +25,7 @@ public:
     //virtual std::vector<T> level_order() const = 0;
 
     // Характеристики
-    //virtual int height() const = 0;
+    virtual int height() const = 0;
     //virtual bool is_balanced() const = 0;
 
     // Опционально: визуализация

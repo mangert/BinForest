@@ -8,12 +8,13 @@ template <std::totally_ordered T>
 class BSTree : public ITree<T> {
 
 protected:
-	struct Node {
+	
+	struct Node { //структура для узла 
 		T key;
 		std::unique_ptr<Node> left;
 		std::unique_ptr<Node> right;
 
-		//Конструкторы
+		//Конструкторы и присваивание
 		explicit Node(const T& k)
 			: key(k), left(nullptr), right(nullptr) {}			
 		
@@ -34,14 +35,14 @@ public:
 	
 	BSTree() = default;  // пустое дерево
 
-	BSTree(T key) : root(std::make_unique<Node>(Node(key))) {};	
+	BSTree(T key) : root(std::make_unique<Node>(Node(key))), node_count(1) {};	
 	
 	// Конструктор копирования
-	BSTree(const BSTree& other) : root(clone(other.root.get())) {};	
+	BSTree(const BSTree& other) : root(clone(other.root.get())), node_count(other.node_count) {};	
 
 	// Конструктор перемещения
 	BSTree(BSTree&& other) noexcept
-		: root(std::move(other.root)) {
+		: root(std::move(other.root)), node_count(other.node_count) {
 		other.root = nullptr;		
 	}
 
@@ -51,6 +52,7 @@ public:
 	BSTree& operator=(const BSTree& other) {
 		if (this != &other) {
 			root = clone(other.root.get());
+			node_count = other.node_count;
 		}
 		return *this;
 	};
@@ -58,17 +60,20 @@ public:
 	// Оператор перемещающего присваивания
 	BSTree& operator=(BSTree&& other) noexcept {
 		clear();
-		root = std::move(other.root);		
-		other.root = nullptr;		
+		root = std::move(other.root);
+		node_count = other.node_count;
+		other.root = nullptr;
+		other.node_count = 0;
 		return *this;
 	};
 	
 	//--------- Основные операции -------//
 	//вставка (итеративно)
 	void insert(const T& key) override {
-		
+
 		if (!root) {
 			root = std::make_unique<Node>(key);
+			++node_count;
 			return;
 		}
 
@@ -77,19 +82,24 @@ public:
 			if (key < current->key) {
 				if (!current->left) {
 					current->left = std::make_unique<Node>(key);
+					++node_count;
 					return;
 				}
 				current = current->left.get();
 			}
-			else {
+			else if (key > current->key) {
 				if (!current->right) {
 					current->right = std::make_unique<Node>(key);
+					++node_count;
 					return;
 				}
 				current = current->right.get();
 			}
-		}	
-	};	
+			else {	
+				return;
+			}
+		}
+	};
 	
 	//поиск элемента
 	bool contains(const T& key) const override {
@@ -116,19 +126,31 @@ public:
 	
 	//удаление элемента
 	void remove(const T& key) override {
-		root = remove_impl(root, key);
+		if (remove_impl(root, key))
+			--node_count;
 	}
 	
 	//очистка дерева
 	void clear() override {
 		root.reset();
+		node_count = 0;
 	}
 
 	//--------- Состояние -------//
 	//проверка на пустоту
-	bool is_empty() const {
+	bool is_empty() const override{
 		return !root;
-	}
+	};
+	
+	//размер
+	size_t size() const override {
+		return node_count;
+	};
+
+	//высота	
+	int height() const override {
+		return calc_height(root.get());
+	}	
 	
 	using FuncPtr = void(*)(Node*);
 	void visit(Node* node, FuncPtr action) {
@@ -158,14 +180,14 @@ protected:
 	}
 	
 	//рекурсивная реализация удаления
-	static void remove_impl(std::unique_ptr<Node>& node, const T& key) {
-		if (!node) return;
+	static bool remove_impl(std::unique_ptr<Node>& node, const T& key) {
+		if (!node) return false;
 
 		if (key < node->key) {
-			remove_impl(node->left, key);
+			return remove_impl(node->left, key);
 		}
 		else if (key > node->key) {
-			remove_impl(node->right, key);
+			return remove_impl(node->right, key);
 		}
 		else {
 			// Узел для удаления найден
@@ -179,12 +201,20 @@ protected:
 				// Два ребенка
 				Node* min = find_min(node->right.get());
 				node->key = min->key;
-				remove_impl(node->right, node->key);
+				return remove_impl(node->right, node->key);
 			}
-		}
+			return true;
+		}		
+	}
+
+	//рекурсивный расчет высоты
+	static int calc_height(const Node* node) {
+		return node ? 1 + std::max(calc_height(node->left.get()),
+			calc_height(node->right.get()))	: -1;
 	}
 
 	
 protected:
 	std::unique_ptr<Node> root = nullptr;
+	size_t node_count = 0;
 };

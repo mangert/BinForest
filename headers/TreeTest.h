@@ -15,11 +15,11 @@ public:
 
 		//числа в случайном порядке
 		std::vector<T> data = gen_data(size, max);
-		Tree t1 =std::move(build_tree_test(data));
+		Tree rnd_tree = build_tree_test(data);
 		std::cout << "-------------------------\n";
 		std::sort(data.begin(), data.end());
 		//числа по порядку
-		Tree t2 = std::move(build_tree_test(data));
+		Tree ord_tree = build_tree_test(data);
 		std::cout << "-------------------------\n";
 	}
 	

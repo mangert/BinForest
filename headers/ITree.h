@@ -19,10 +19,10 @@ public:
     virtual size_t size() const = 0;    
 
     // Обходы
-    //virtual std::vector<T> inorder() const = 0;
-    //virtual std::vector<T> preorder() const = 0;
-    //virtual std::vector<T> postorder() const = 0;
-    //virtual std::vector<T> level_order() const = 0;
+    virtual std::vector<T> inorder() const = 0;
+    virtual std::vector<T> preorder() const = 0;
+    virtual std::vector<T> postorder() const = 0;
+    virtual std::vector<T> level_order() const = 0;
 
     // Характеристики
     virtual int height() const = 0;

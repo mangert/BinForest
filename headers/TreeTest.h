@@ -25,8 +25,8 @@ public:
 	
 
 
-private:
-
+private:	
+	
 	static Tree build_tree_test(std::vector<T>& data) {
 		
 		Tree tree;		

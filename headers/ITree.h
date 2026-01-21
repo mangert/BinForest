@@ -3,6 +3,7 @@
 #include <vector>
 #include <functional>
 
+
 template <std::totally_ordered T>
 class ITree {
 public:
@@ -24,12 +25,17 @@ public:
     virtual std::vector<T> postorder() const = 0;
     virtual std::vector<T> level_order() const = 0;
 
-    // Характеристики
-    virtual int height() const = 0;
-    //virtual bool is_balanced() const = 0;
+    // Visitor методы
+    virtual void visit_inorder(std::function<void(const T&)> visitor) const = 0;
+    virtual void visit_preorder(std::function<void(const T&)> visitor) const = 0;
+    virtual void visit_postorder(std::function<void(const T&)> visitor) const = 0;
+    virtual void visit_level_order(std::function<void(const T&)> visitor) const = 0;
 
-    // Опционально: визуализация
-    //virtual void print(std::ostream& os) const = 0;
+    // Характеристики
+    virtual int height() const = 0;   
+
+    // Визуализация
+    virtual void print(std::ostream& os) const = 0;
 };
 
 template <std::totally_ordered T>

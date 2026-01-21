@@ -1,7 +1,36 @@
-#include <iostream>
+п»ї#include <iostream>
 #include "BSTree.h"
 #include "TreeTest.h"
 #include <cassert>
+
+void testPrinting() {
+    BSTree<int> tree;
+
+    // РџРѕСЃС‚СЂРѕРёРј СЃР±Р°Р»Р°РЅСЃРёСЂРѕРІР°РЅРЅРѕРµ РґРµСЂРµРІРѕ
+    tree.insert(5);
+    tree.insert(3);
+    tree.insert(7);
+    tree.insert(2);
+    tree.insert(4);
+    tree.insert(6);
+    tree.insert(8);
+
+    std::cout << "=== Simple print ===\n";
+    tree.print_simple(std::cout);
+    std::cout << "\n\n";
+
+    std::cout << "=== Detailed print ===\n";
+    tree.print_detailed(std::cout);
+    std::cout << "\n";
+
+    std::cout << "=== ASCII tree ===\n";
+    tree.print(std::cout);
+
+    // Р”Р»СЏ РёРЅС‚РµСЂС„РµР№СЃР° ITree
+    std::cout << "\n=== Via ITree interface ===\n";
+    const ITree<int>& itree = tree;
+    itree.print(std::cout);
+}
 
 void testAllTraversals() {
     std::cout << "=== Testing all traversals ===\n";
@@ -47,7 +76,7 @@ void testAllTraversals() {
     for (int x : levelorder) std::cout << x << " ";
     std::cout << "\n";  // 5 3 7 2 4 6 8
 
-    // Тест на вырожденном дереве
+    // РўРµСЃС‚ РЅР° РІС‹СЂРѕР¶РґРµРЅРЅРѕРј РґРµСЂРµРІРµ
     std::cout << "\n=== Testing degenerate tree ===\n";
 
     BSTree<int> degenerate;
@@ -83,26 +112,27 @@ int main() {
     tree.insert(7);
     assert(tree.size() == 3);
 
-    // Дубликаты
-    tree.insert(5);  // Не должен добавиться
-    tree.insert(3);  // Не должен добавиться
-    tree.insert(7);  // Не должен добавиться
-    assert(tree.size() == 3);  // Размер не изменился
+    // Р”СѓР±Р»РёРєР°С‚С‹
+    tree.insert(5);  // РќРµ РґРѕР»Р¶РµРЅ РґРѕР±Р°РІРёС‚СЊСЃСЏ
+    tree.insert(3);  // РќРµ РґРѕР»Р¶РµРЅ РґРѕР±Р°РІРёС‚СЊСЃСЏ
+    tree.insert(7);  // РќРµ РґРѕР»Р¶РµРЅ РґРѕР±Р°РІРёС‚СЊСЃСЏ
+    assert(tree.size() == 3);  // Р Р°Р·РјРµСЂ РЅРµ РёР·РјРµРЅРёР»СЃСЏ
 
-    // Проверка структуры
+    // РџСЂРѕРІРµСЂРєР° СЃС‚СЂСѓРєС‚СѓСЂС‹
     assert(tree.contains(5));
     assert(tree.contains(3));
     assert(tree.contains(7));
 
-    // Удаление и повторная вставка
+    // РЈРґР°Р»РµРЅРёРµ Рё РїРѕРІС‚РѕСЂРЅР°СЏ РІСЃС‚Р°РІРєР°
     tree.remove(5);
     assert(tree.size() == 2);
-    tree.insert(5);  // Теперь можно добавить
+    tree.insert(5);  // РўРµРїРµСЂСЊ РјРѕР¶РЅРѕ РґРѕР±Р°РІРёС‚СЊ
     assert(tree.size() == 3);
 	*/
     
     /*TreeTest<int, BSTree<int>>::test(10000000);
     std::cout << "**********************\n";*/
     testAllTraversals();
+    testPrinting();
     
 }

@@ -1,30 +1,32 @@
-#pragma once
+п»ї#pragma once
 #include <iostream>
 #include <memory>
 #include <concepts>
 #include "ITree.h"
 #include <stack>
 #include <queue>
+#include <numeric>
+#include <algorithm>
 
 template <std::totally_ordered T> 
 class BSTree : public ITree<T> {
 
 protected:
 	
-	struct Node { //структура для узла 
+	struct Node { //СЃС‚СЂСѓРєС‚СѓСЂР° РґР»СЏ СѓР·Р»Р° 
 		T key;
 		std::unique_ptr<Node> left;
 		std::unique_ptr<Node> right;
 
-		//Конструкторы и присваивание
+		//РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂС‹ Рё РїСЂРёСЃРІР°РёРІР°РЅРёРµ
 		explicit Node(const T& k)
 			: key(k), left(nullptr), right(nullptr) {}			
 		
-		//Копирование
+		//РљРѕРїРёСЂРѕРІР°РЅРёРµ
 		Node(const Node&) = delete;
 		Node& operator=(const Node&) = delete;
 
-		//Перемещение
+		//РџРµСЂРµРјРµС‰РµРЅРёРµ
 		Node(Node&& other) noexcept = default;
 		Node& operator=(Node&& other) noexcept = default;
 		
@@ -33,16 +35,16 @@ protected:
 	};
 
 public:
-	//--------- конструкторы и операторы присваивания -------//
+	//--------- РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂС‹ Рё РѕРїРµСЂР°С‚РѕСЂС‹ РїСЂРёСЃРІР°РёРІР°РЅРёСЏ -------//
 	
-	BSTree() = default;  // пустое дерево
+	BSTree() = default;  // РїСѓСЃС‚РѕРµ РґРµСЂРµРІРѕ
 
 	BSTree(T key) : root(std::make_unique<Node>(Node(key))), node_count(1) {};	
 	
-	// Конструктор копирования
+	// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєРѕРїРёСЂРѕРІР°РЅРёСЏ
 	BSTree(const BSTree& other) : root(clone(other.root.get())), node_count(other.node_count) {};
 
-	// Конструктор перемещения
+	// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РїРµСЂРµРјРµС‰РµРЅРёСЏ
 	BSTree(BSTree&& other) noexcept
 		: root(std::move(other.root)), node_count(other.node_count) {
 		other.root = nullptr;		
@@ -52,7 +54,7 @@ public:
 		clear();		
 	};
 
-	// Оператор копирующего присваивания
+	// РћРїРµСЂР°С‚РѕСЂ РєРѕРїРёСЂСѓСЋС‰РµРіРѕ РїСЂРёСЃРІР°РёРІР°РЅРёСЏ
 	BSTree& operator=(const BSTree& other) {
 		if (this != &other) {
 			root = clone(other.root.get());
@@ -62,7 +64,7 @@ public:
 		return *this;
 	};
 
-	// Оператор перемещающего присваивания
+	// РћРїРµСЂР°С‚РѕСЂ РїРµСЂРµРјРµС‰Р°СЋС‰РµРіРѕ РїСЂРёСЃРІР°РёРІР°РЅРёСЏ
 	BSTree& operator=(BSTree&& other) noexcept {
 		clear();
 		root = std::move(other.root);
@@ -72,8 +74,8 @@ public:
 		return *this;
 	};
 	
-	//--------- Основные операции -------//
-	//вставка (итеративно)
+	//--------- РћСЃРЅРѕРІРЅС‹Рµ РѕРїРµСЂР°С†РёРё -------//
+	//РІСЃС‚Р°РІРєР° (РёС‚РµСЂР°С‚РёРІРЅРѕ)
 	void insert(const T& key) override {
 
 		if (!root) {
@@ -106,9 +108,9 @@ public:
 		}
 	};
 	
-	//поиск элемента
+	//РїРѕРёСЃРє СЌР»РµРјРµРЅС‚Р°
 	bool contains(const T& key) const override {
-		// Ранний выход для пустого дерева
+		// Р Р°РЅРЅРёР№ РІС‹С…РѕРґ РґР»СЏ РїСѓСЃС‚РѕРіРѕ РґРµСЂРµРІР°
 		if (!root) return false;
 
 		const Node* current = root.get();
@@ -129,21 +131,21 @@ public:
 		return false;
 	};
 	
-	//удаление элемента
+	//СѓРґР°Р»РµРЅРёРµ СЌР»РµРјРµРЅС‚Р°
 	void remove(const T& key) override {
 		if (!root) return;
 
-		// Стек указателей на unique_ptr вдоль пути поиска
+		// РЎС‚РµРє СѓРєР°Р·Р°С‚РµР»РµР№ РЅР° unique_ptr РІРґРѕР»СЊ РїСѓС‚Рё РїРѕРёСЃРєР°
 		std::stack<std::unique_ptr<Node>*> path;
 		path.push(&root);
 
-		// Поиск узла для удаления
+		// РџРѕРёСЃРє СѓР·Р»Р° РґР»СЏ СѓРґР°Р»РµРЅРёСЏ
 		while (!path.empty()) {
 			auto current_ptr = path.top();
 			Node* current = current_ptr->get();
 
 			if (!current) {
-				// Дошли до nullptr - ключ не найден
+				// Р”РѕС€Р»Рё РґРѕ nullptr - РєР»СЋС‡ РЅРµ РЅР°Р№РґРµРЅ
 				path.pop();
 				return;
 			}
@@ -155,7 +157,7 @@ public:
 				path.push(&((*current_ptr)->right));
 			}
 			else {
-				// Нашли узел для удаления
+				// РќР°С€Р»Рё СѓР·РµР» РґР»СЏ СѓРґР°Р»РµРЅРёСЏ
 				remove_node(path);
 				--node_count;
 				return;
@@ -163,18 +165,18 @@ public:
 		}
 	}
 	
-	//очистка дерева (итеративно)
+	//РѕС‡РёСЃС‚РєР° РґРµСЂРµРІР° (РёС‚РµСЂР°С‚РёРІРЅРѕ)
 	void clear() override {
 		if (!root) return;
 
 		std::stack<std::unique_ptr<Node>> node_stack;
-		node_stack.push(std::move(root));  // Перемещаем владение в стек
+		node_stack.push(std::move(root));  // РџРµСЂРµРјРµС‰Р°РµРј РІР»Р°РґРµРЅРёРµ РІ СЃС‚РµРє
 
 		while (!node_stack.empty()) {
 			auto node = std::move(node_stack.top());
 			node_stack.pop();
 
-			// Перемещаем детей в стек перед удалением node
+			// РџРµСЂРµРјРµС‰Р°РµРј РґРµС‚РµР№ РІ СЃС‚РµРє РїРµСЂРµРґ СѓРґР°Р»РµРЅРёРµРј node
 			if (node->left) {
 				node_stack.push(std::move(node->left));
 			}
@@ -186,122 +188,73 @@ public:
 		node_count = 0;		
 	}
 
-	//--------- Состояние -------//
-	//проверка на пустоту
+	//--------- РЎРѕСЃС‚РѕСЏРЅРёРµ -------//
+	//РїСЂРѕРІРµСЂРєР° РЅР° РїСѓСЃС‚РѕС‚Сѓ
 	bool is_empty() const override{
 		return !root;
 	};
-
-	//--------- Обходы -------//
+	
+	// --------- РџСѓР±Р»РёС‡РЅС‹Рµ РјРµС‚РѕРґС‹ РѕР±С…РѕРґРѕРІ --------- //
 	std::vector<T> inorder() const override {
 		std::vector<T> result;
-		if (!root) return result;
-		result.reserve(node_count);
-
-		std::stack<const Node*> stack;
-		const Node* current = root.get();
-
-		while (current || !stack.empty()) {
-			// Добираемся до самого левого узла
-			while (current) {
-				stack.push(current);
-				current = current->left.get();
-			}
-
-			// Обрабатываем узел
-			current = stack.top();
-			stack.pop();
-			result.emplace_back(current->key);
-
-			// Переходим к правому поддереву
-			current = current->right.get();
+		if (root) {
+			result.reserve(node_count);
+			inorder_impl([&](const T& key) { result.emplace_back(key); });
 		}
-
 		return result;
 	}
 
 	std::vector<T> preorder() const override {
 		std::vector<T> result;
-		if (!root) return result;
-		result.reserve(node_count);
-
-		std::stack<const Node*> stack;
-		stack.push(root.get());
-
-		while (!stack.empty()) {
-			const Node* current = stack.top();
-			stack.pop();
-			result.emplace_back(current->key);
-
-			//сначала кладем правого, потом левого			
-			if (current->right) {
-				stack.push(current->right.get());
-			}
-			if (current->left) {
-				stack.push(current->left.get());
-			}
+		if (root) {
+			result.reserve(node_count);
+			preorder_impl([&](const T& key) { result.emplace_back(key); });
 		}
-
 		return result;
 	}
 
 	std::vector<T> postorder() const override {
 		std::vector<T> result;
-		if (!root) return result;
-		result.reserve(node_count);
-
-		std::stack<const Node*> stack;
-		stack.push(root.get());
-
-		while (!stack.empty()) {
-			const Node* current = stack.top();
-			stack.pop();
-			result.emplace_back(current->key);
-
-			if (current->left) stack.push(current->left.get());
-			if (current->right) stack.push(current->right.get());
+		if (root) {
+			result.reserve(node_count);
+			postorder_impl([&](const T& key) { result.emplace_back(key); });
 		}
-
-		std::reverse(result.begin(), result.end());
 		return result;
 	}
 
 	std::vector<T> level_order() const override {
 		std::vector<T> result;
-		if (!root) return result;
-		result.reserve(node_count);
-
-		// Используем вектор
-		std::vector<const Node*> current_lvl;
-		current_lvl.push_back(root.get());
-
-		while (!current_lvl.empty()) {
-			std::vector<const Node*> next_lvl;
-
-			for (const Node* node : current_lvl) {
-				result.emplace_back(node->key);
-
-				if (node->left) next_lvl.push_back(node->left.get());
-				if (node->right) next_lvl.push_back(node->right.get());
-			}
-
-			// Освобождаем память предыдущего уровня
-			current_lvl = std::move(next_lvl);
+		if (root) {
+			result.reserve(node_count);
+			level_order_impl([&](const T& key) { result.emplace_back(key); });
 		}
-
 		return result;
 	}
+
+	// --------- Visitor РјРµС‚РѕРґС‹  --------- //	
+	void visit_inorder(std::function<void(const T&)> visitor) const override {
+		if (visitor) inorder_impl(visitor);
+	}
+	void visit_preorder(std::function<void(const T&)> visitor) const  override {
+		if (visitor) preorder_impl(visitor);
+	}
+	void visit_postorder(std::function<void(const T&)> visitor) const override {
+		if (visitor) postorder_impl(visitor);
+	}
+	void visit_level_order(std::function<void(const T&)> visitor) const override {
+		if (visitor) level_order_impl(visitor);
+	}
 	
-	//--------- Метрики -------//
-	//размер
+	//--------- РњРµС‚СЂРёРєРё -------//
+	//СЂР°Р·РјРµСЂ
 	size_t size() const override {
 		return node_count;
 	};
 	
-	//высота	
+	//РІС‹СЃРѕС‚Р°	
 	int height() const override {
-		if (!root) return -1;  // или 0, в зависимости от определения
-
+		
+		if (!root) return -1;  
 		std::queue<const Node*> q;
 		q.push(root.get());
 		int height = -1;
@@ -319,20 +272,146 @@ public:
 			}
 		}
 		return height;
+	}
+
+	//--------- РџРµС‡Р°С‚СЊ -------//
+	void print(std::ostream& os) const override{
+		print_simple(os);
+	}
+
+	// Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ РјРµС‚РѕРґС‹ РґР»СЏ РѕС‚Р»Р°РґРєРё
+	void print_simple(std::ostream& os = std::cout) const {
+		if (is_empty()) {
+			os << "[Empty tree]";
+			return;
+		}
+
+		os << "BST: ";
+		visit_inorder([&](const T& key) { os << key << " "; });
+	}
+
+	void print_detailed(std::ostream& os = std::cout) const {
+		
+		os << "Binary Search Tree\n";
+		os << "в”њв”Ђ Size: " << size() << "\n";
+		os << "в”њв”Ђ Height: " << height() << "\n";		
+		os << "в”њв”Ђ In-order: ";
+		visit_inorder([&](const T& key) { os << key << " "; });
+		os << "\nв””в”Ђ Structure:\n";
+
+		if (root) {
+			print_tree_impl(os, root.get(), "    ", true);
+		}
+	}
+
+private:
+	static void print_tree_impl(std::ostream& os, const Node* node,
+		const std::string& prefix, bool is_left) {
+		if (!node) return;
+
+		os << prefix << (is_left ? "в”њв”Ђв”Ђ " : "в””в”Ђв”Ђ ") << node->key << "\n";
+
+		if (node->left || node->right) {
+			std::string new_prefix = prefix + (is_left ? "в”‚   " : "    ");
+			print_tree_impl(os, node->left.get(), new_prefix, true);
+			print_tree_impl(os, node->right.get(), new_prefix, false);
+		}
 	}	
 	
-	
 protected:
+	// --------- РЁР°Р±Р»РѕРЅРЅС‹Рµ СЂРµР°Р»РёР·Р°С†РёРё РѕР±С…РѕРґРѕРІ --------- //
+	template<typename Action>
+	void inorder_impl(Action&& action) const {
+		if (!root) return;
 
-	//служебная функция копирования дерева (итеративная)
+		std::stack<const Node*> stack;
+		const Node* current = root.get();
+
+		while (current || !stack.empty()) {
+			while (current) {
+				stack.push(current);
+				current = current->left.get();
+			}
+
+			current = stack.top();
+			stack.pop();
+			action(current->key);  // Р’С‹Р·С‹РІР°РµРј action
+
+			current = current->right.get();
+		}
+	}
+
+	template<typename Action>
+	void preorder_impl(Action&& action) const {
+		if (!root) return;
+
+		std::stack<const Node*> stack;
+		stack.push(root.get());
+
+		while (!stack.empty()) {
+			const Node* current = stack.top();
+			stack.pop();
+			action(current->key);
+
+			if (current->right) stack.push(current->right.get());
+			if (current->left) stack.push(current->left.get());
+		}
+	}
+
+	template<typename Action>
+	void postorder_impl(Action&& action) const {
+		if (!root) return;
+
+		// Р”РІР° СЃС‚РµРєР°
+		std::stack<const Node*> stack1, stack2;
+		stack1.push(root.get());
+
+		while (!stack1.empty()) {
+			const Node* current = stack1.top();
+			stack1.pop();
+			stack2.push(current);
+
+			if (current->left) stack1.push(current->left.get());
+			if (current->right) stack1.push(current->right.get());
+		}
+
+		while (!stack2.empty()) {
+			action(stack2.top()->key);
+			stack2.pop();
+		}
+	}
+
+	template<typename Action>
+	void level_order_impl(Action&& action) const {
+		if (!root) return;
+
+		std::vector<const Node*> current_lvl;
+		current_lvl.push_back(root.get());
+
+		while (!current_lvl.empty()) {
+			std::vector<const Node*> next_lvl;
+			next_lvl.reserve(current_lvl.size() * 2);  // РћРїС‚РёРјРёР·Р°С†РёСЏ!
+
+			for (const Node* node : current_lvl) {
+				action(node->key);
+
+				if (node->left) next_lvl.push_back(node->left.get());
+				if (node->right) next_lvl.push_back(node->right.get());
+			}
+
+			current_lvl = std::move(next_lvl);
+		}
+	}
+
+	//СЃР»СѓР¶РµР±РЅР°СЏ С„СѓРЅРєС†РёСЏ РєРѕРїРёСЂРѕРІР°РЅРёСЏ РґРµСЂРµРІР° (РёС‚РµСЂР°С‚РёРІРЅР°СЏ)
 	static std::unique_ptr<Node> clone(const Node* source_root) {
 		
 		if (!source_root) return nullptr;
 
 		auto new_root = std::make_unique<Node>(source_root->key);
 
-		std::queue<const Node*> src;  // Оригинал
-		std::queue<Node*> dst;        // Копия
+		std::queue<const Node*> src;  // РћСЂРёРіРёРЅР°Р»
+		std::queue<Node*> dst;        // РљРѕРїРёСЏ
 
 		src.push(source_root);
 		dst.push(new_root.get());
@@ -343,14 +422,14 @@ protected:
 			src.pop();
 			dst.pop();
 
-			// Левый ребeнок
+			// Р›РµРІС‹Р№ СЂРµР±eРЅРѕРє
 			if (src_node->left) {
 				dst_node->left = std::make_unique<Node>(src_node->left->key);
 				src.push(src_node->left.get());
 				dst.push(dst_node->left.get());
 			}
 
-			// Правый ребeнок
+			// РџСЂР°РІС‹Р№ СЂРµР±eРЅРѕРє
 			if (src_node->right) {
 				dst_node->right = std::make_unique<Node>(src_node->right->key);
 				src.push(src_node->right.get());
@@ -361,57 +440,57 @@ protected:
 		return new_root;
 	}
 
-	//служебная функция удаления узла
+	//СЃР»СѓР¶РµР±РЅР°СЏ С„СѓРЅРєС†РёСЏ СѓРґР°Р»РµРЅРёСЏ СѓР·Р»Р°
 	static void remove_node(std::stack<std::unique_ptr<Node>*>& path) {
-		// path.top() указывает на unique_ptr удаляемого узла
+		// path.top() СѓРєР°Р·С‹РІР°РµС‚ РЅР° unique_ptr СѓРґР°Р»СЏРµРјРѕРіРѕ СѓР·Р»Р°
 
-		auto node_ptr = path.top();  // Указатель на unique_ptr<Node> удаляемого узла
-		path.pop();                 // Убираем удаляемый узел из пути
+		auto node_ptr = path.top();  // РЈРєР°Р·Р°С‚РµР»СЊ РЅР° unique_ptr<Node> СѓРґР°Р»СЏРµРјРѕРіРѕ СѓР·Р»Р°
+		path.pop();                 // РЈР±РёСЂР°РµРј СѓРґР°Р»СЏРµРјС‹Р№ СѓР·РµР» РёР· РїСѓС‚Рё
 
-		Node* node = node_ptr->get(); // Сырой указатель на удаляемый узел
+		Node* node = node_ptr->get(); // РЎС‹СЂРѕР№ СѓРєР°Р·Р°С‚РµР»СЊ РЅР° СѓРґР°Р»СЏРµРјС‹Р№ СѓР·РµР»
 
-		//У узла нет левого ребенка
+		//РЈ СѓР·Р»Р° РЅРµС‚ Р»РµРІРѕРіРѕ СЂРµР±РµРЅРєР°
 		if (!node->left) {
-			*node_ptr = std::move(node->right);  // Заменяем на правого ребенка
+			*node_ptr = std::move(node->right);  // Р—Р°РјРµРЅСЏРµРј РЅР° РїСЂР°РІРѕРіРѕ СЂРµР±РµРЅРєР°
 			return;
 		}
 
-		//У узла нет правого ребенка
+		//РЈ СѓР·Р»Р° РЅРµС‚ РїСЂР°РІРѕРіРѕ СЂРµР±РµРЅРєР°
 		if (!node->right) {
-			*node_ptr = std::move(node->left);   // Заменяем на левого ребенка
+			*node_ptr = std::move(node->left);   // Р—Р°РјРµРЅСЏРµРј РЅР° Р»РµРІРѕРіРѕ СЂРµР±РµРЅРєР°
 			return;
 		}
 
-		//У узла есть оба ребенка
+		//РЈ СѓР·Р»Р° РµСЃС‚СЊ РѕР±Р° СЂРµР±РµРЅРєР°
 		remove_2children_node(node_ptr);
 	}
 
-	//вспомогательная функция удаления узла с двумя детьми
+	//РІСЃРїРѕРјРѕРіР°С‚РµР»СЊРЅР°СЏ С„СѓРЅРєС†РёСЏ СѓРґР°Р»РµРЅРёСЏ СѓР·Р»Р° СЃ РґРІСѓРјСЏ РґРµС‚СЊРјРё
 	static void remove_2children_node(std::unique_ptr<Node>* nodePtr) {
 		Node* node = nodePtr->get();
 
-		// Находим преемника (минимальный в правом поддереве)
-		// и его родителя
+		// РќР°С…РѕРґРёРј РїСЂРµРµРјРЅРёРєР° (РјРёРЅРёРјР°Р»СЊРЅС‹Р№ РІ РїСЂР°РІРѕРј РїРѕРґРґРµСЂРµРІРµ)
+		// Рё РµРіРѕ СЂРѕРґРёС‚РµР»СЏ
 		std::unique_ptr<Node>* successorParentPtr = &((*nodePtr)->right);
 		std::unique_ptr<Node>* successorPtr = &((*nodePtr)->right);
 
-		// Идём влево, пока можно
+		// РРґС‘Рј РІР»РµРІРѕ, РїРѕРєР° РјРѕР¶РЅРѕ
 		while ((*successorPtr)->left) {
 			successorParentPtr = successorPtr;
 			successorPtr = &((*successorPtr)->left);
 		}
 		
-		// Копируем ключ преемника в удаляемый узел
+		// РљРѕРїРёСЂСѓРµРј РєР»СЋС‡ РїСЂРµРµРјРЅРёРєР° РІ СѓРґР°Р»СЏРµРјС‹Р№ СѓР·РµР»
 		node->key = (*successorPtr)->key;
 
-		// Удаляем преемника из дерева
-		// У преемника может быть правый ребёнок (или не быть)
+		// РЈРґР°Р»СЏРµРј РїСЂРµРµРјРЅРёРєР° РёР· РґРµСЂРµРІР°
+		// РЈ РїСЂРµРµРјРЅРёРєР° РјРѕР¶РµС‚ Р±С‹С‚СЊ РїСЂР°РІС‹Р№ СЂРµР±С‘РЅРѕРє (РёР»Рё РЅРµ Р±С‹С‚СЊ)
 		if (successorParentPtr == successorPtr) {
-			// Преемник - прямой правый ребёнок удаляемого узла
+			// РџСЂРµРµРјРЅРёРє - РїСЂСЏРјРѕР№ РїСЂР°РІС‹Р№ СЂРµР±С‘РЅРѕРє СѓРґР°Р»СЏРµРјРѕРіРѕ СѓР·Р»Р°
 			*successorPtr = std::move((*successorPtr)->right);
 		}
 		else {
-			// Преемник где-то глубже в левой ветке
+			// РџСЂРµРµРјРЅРёРє РіРґРµ-С‚Рѕ РіР»СѓР±Р¶Рµ РІ Р»РµРІРѕР№ РІРµС‚РєРµ
 			*successorPtr = std::move((*successorPtr)->right);
 		}
 	}	

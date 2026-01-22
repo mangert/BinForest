@@ -190,7 +190,7 @@ public:
 
 	//--------- Состояние -------//
 	//проверка на пустоту
-	bool is_empty() const override{
+	bool empty() const override{
 		return !root;
 	};
 	

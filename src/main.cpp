@@ -28,7 +28,7 @@ int main() {
 
     std::cout << "\nТестирование функционала\n";
 
-    TreeTest<int, BSTree<int>>::test(100000);
+    TreeTest<int, BSTree<int>>::comprehensive_test(100000);
     
     
 }

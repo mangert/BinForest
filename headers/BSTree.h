@@ -275,48 +275,45 @@ public:
 	}
 
 	//--------- Печать -------//
-	void print(std::ostream& os) const override{
-		print_simple(os);
-	}
-
-	// Дополнительные методы для отладки
-	void print_simple(std::ostream& os = std::cout) const {
-		if (is_empty()) {
-			os << "[Empty tree]";
+	void print(std::ostream& os = std::cout) const override{
+	
+		if (!root) {
+			os << "[empty]\n";
 			return;
 		}
 
-		os << "BST: ";
-		visit_inorder([&](const T& key) { os << key << " "; });
-	}
+		std::queue<const Node*> q;
+		q.push(root.get());
+		int level = 0;
 
-	void print_detailed(std::ostream& os = std::cout) const {
-		
-		os << "Binary Search Tree\n";
-		os << "├─ Size: " << size() << "\n";
-		os << "├─ Height: " << height() << "\n";		
-		os << "├─ In-order: ";
-		visit_inorder([&](const T& key) { os << key << " "; });
-		os << "\n└─ Structure:\n";
+		while (!q.empty()) {
+			int level_size = q.size();
+			os << "Level " << level << ": ";
 
-		if (root) {
-			print_tree_impl(os, root.get(), "    ", true);
+			for (int i = 0; i < level_size; ++i) {
+				const Node* current = q.front();
+				q.pop();
+
+				os << current->key;
+
+				// Показываем связи
+				if (current->left || current->right) {
+					os << "[";
+					if (current->left) os << "L:" << current->left->key;
+					if (current->left && current->right) os << ",";
+					if (current->right) os << "R:" << current->right->key;
+					os << "]";
+				}
+				os << "  ";
+
+				if (current->left) q.push(current->left.get());
+				if (current->right) q.push(current->right.get());
+			}
+			os << "\n";
+			level++;
 		}
 	}
-
-private:
-	static void print_tree_impl(std::ostream& os, const Node* node,
-		const std::string& prefix, bool is_left) {
-		if (!node) return;
-
-		os << prefix << (is_left ? "├── " : "└── ") << node->key << "\n";
-
-		if (node->left || node->right) {
-			std::string new_prefix = prefix + (is_left ? "│   " : "    ");
-			print_tree_impl(os, node->left.get(), new_prefix, true);
-			print_tree_impl(os, node->right.get(), new_prefix, false);
-		}
-	}	
+	
 	
 protected:
 	// --------- Шаблонные реализации обходов --------- //

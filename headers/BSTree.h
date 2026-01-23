@@ -60,7 +60,6 @@ public:
 			root = clone(other.root.get());
 			node_count = other.node_count;
 		}
-		std::cout << "Copied!" << std::endl;
 		return *this;
 	};
 
@@ -400,6 +399,7 @@ protected:
 		}
 	}
 
+	//-------------- Общие служебные функции ---------//
 	//служебная функция копирования дерева (итеративная)
 	static std::unique_ptr<Node> clone(const Node* source_root) {
 		

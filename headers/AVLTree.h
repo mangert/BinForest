@@ -93,7 +93,9 @@ public:
 	//--------- Основные операции -------//
 	//вставка (рекурсивно)
 	void insert(const T& key) override {
-		//TODO	
+		std::cout << "Ins " << key << " size before" << size() << std::endl;
+		root = insert_impl(std::move(root), key);		
+		std::cout << "Ins " << key << " size after" << size() << std::endl;
 	};
 
 	//поиск элемента
@@ -277,6 +279,7 @@ public:
 public:
 	
 	// --------- Вращения --------- //
+	// Функции принимают владение узлом, возвращают новый корень поддерева
 	static std::unique_ptr<Node> small_rotate_left(std::unique_ptr<Node> x) {
 	
 		auto y = std::move(x->right);    // Забираем правое поддерево
@@ -311,6 +314,66 @@ public:
 		y->upd_height();
 
 		return y;  // Возвращаем новый корень
+	}
+	
+	static std::unique_ptr<Node> big_rotate_left(std::unique_ptr<Node> x) {	
+		
+		x->right = small_rotate_right(std::move(x->right));   
+		
+		x->upd_height();    
+		
+		return small_rotate_left(std::move(x));		
+	}
+
+	static std::unique_ptr<Node> big_rotate_right(std::unique_ptr<Node> x) {
+
+		x->left = small_rotate_right(std::move(x->left));
+
+		x->upd_height();
+
+		return small_rotate_right(std::move(x));
+	}
+
+	//Балансировка
+	static std::unique_ptr<Node> balance(std::unique_ptr<Node> node) {
+		
+		if (!node) return nullptr;
+
+		node->upd_height();
+		int bf = node->balance_factor();
+
+		// Левый перевес
+		if (bf > 1) {
+			// проверяем баланс левого ребенка
+			int left_bf = node->left ? node->left->balance_factor() : 0;
+
+			if (left_bf >= 0) {
+				// Поворачиваем вправо
+				return small_rotate_right(std::move(node));
+			}
+			else {
+				// Делаем большой поворот вправо
+				return big_rotate_right(std::move(node));
+			}
+		}
+
+		// Правый перевес  
+		if (bf < -1) {
+			// проверяем баланс правого ребенка
+			int right_bf = node->right ? node->right->balance_factor() : 0;
+
+			if (right_bf <= 0) {
+				// Поворачиваем налево
+				return small_rotate_left(std::move(node));
+			}
+			else {
+				// Делаем большой поворот налево
+				return big_rotate_left(std::move(node));
+			}
+		}
+
+		// Если уже сбалансировано, просто возвращаем
+		return node;
 	}
 	
 	// --------- Шаблонные реализации обходов --------- //
@@ -410,6 +473,32 @@ public:
 		new_node->right = clone(source->right.get());
 
 		return new_node;
+	}
+
+	std::unique_ptr<Node> insert_impl(std::unique_ptr<Node> node, const T& key) {
+		
+		// Если дошли до конца, то просто вставляем
+		if (!node) {
+			++node_count;
+			return std::make_unique<Node>(key);
+		}
+
+		if (key < node->key) {
+			node->left = insert_impl(std::move(node->left), key);
+		}
+		else if (key > node->key) {
+			node->right = insert_impl(std::move(node->right), key);
+		}
+		else {
+			// Дубликат - не добавляем
+			return node;
+		}
+
+		// 2. Обновляем высоту текущего узла
+		node->upd_height();
+
+		// 3. Балансируем дерево
+		return balance(std::move(node));
 	}
 
 	//служебная функция удаления узла

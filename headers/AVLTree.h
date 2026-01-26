@@ -36,6 +36,11 @@ public:
 
 		//служебная функция обновления высоты узла
 		void upd_height() {						
+
+			static int counter = 0;
+			counter++;
+			std::cout << "upd_height call #" << counter << " for node " << key << "\n";
+
 			
 			int left_height = left ? left->height : -1;
 			int right_height = right ? right->height : -1;
@@ -49,6 +54,13 @@ public:
 			return left_height - right_height;
 		}
 
+		void debug_print() const {
+			std::cout << "Node " << key
+				<< " [height=" << height
+				<< ", left=" << (left ? std::to_string(left->key) : "null")
+				<< ", right=" << (right ? std::to_string(right->key) : "null")
+				<< ", balance=" << balance_factor() << "]\n";
+		}
 	};
 
 public:
@@ -94,7 +106,8 @@ public:
 	//вставка (рекурсивно)
 	void insert(const T& key) override {
 		std::cout << "Ins " << key << " size before" << size() << std::endl;
-		root = insert_impl(std::move(root), key);		
+		bool height_changed = false;
+		root = insert_impl(std::move(root), key, height_changed);
 		std::cout << "Ins " << key << " size after" << size() << std::endl;
 	};
 
@@ -281,8 +294,8 @@ public:
 	// --------- Вращения --------- //
 	// Функции принимают владение узлом, возвращают новый корень поддерева
 	static std::unique_ptr<Node> small_rotate_left(std::unique_ptr<Node> x) {
-	
-		auto y = std::move(x->right);    // Забираем правое поддерево
+
+		auto y = std::move(x->right); // Забираем правое поддерево
 		x->right = std::move(y->left);   // Перемещаем левое поддерево y в правое x
 		y->left = std::move(x);          // x становится левым ребёнком y
 
@@ -320,59 +333,56 @@ public:
 		
 		x->right = small_rotate_right(std::move(x->right));   
 		
-		x->upd_height();    
+		//x->upd_height();    
 		
 		return small_rotate_left(std::move(x));		
 	}
 
 	static std::unique_ptr<Node> big_rotate_right(std::unique_ptr<Node> x) {
 
-		x->left = small_rotate_right(std::move(x->left));
+		x->left = small_rotate_left(std::move(x->left));
+		
+		//x->upd_height();
 
-		x->upd_height();
-
-		return small_rotate_right(std::move(x));
+		return small_rotate_right(std::move(x));;
 	}
 
 	//Балансировка
 	static std::unique_ptr<Node> balance(std::unique_ptr<Node> node) {
-		
 		if (!node) return nullptr;
-
-		node->upd_height();
+		
 		int bf = node->balance_factor();
 
-		// Левый перевес
-		if (bf > 1) {
-			// проверяем баланс левого ребенка
+		if (bf > 1) {  // Левый перевес
+			if (node->left) {
+				node->left->upd_height();
+			}
+
 			int left_bf = node->left ? node->left->balance_factor() : 0;
 
 			if (left_bf >= 0) {
-				// Поворачиваем вправо
 				return small_rotate_right(std::move(node));
 			}
 			else {
-				// Делаем большой поворот вправо
 				return big_rotate_right(std::move(node));
 			}
 		}
 
-		// Правый перевес  
-		if (bf < -1) {
-			// проверяем баланс правого ребенка
+		if (bf < -1) {  // Правый перевес
+			if (node->right) {
+				node->right->upd_height();
+			}
+
 			int right_bf = node->right ? node->right->balance_factor() : 0;
 
 			if (right_bf <= 0) {
-				// Поворачиваем налево
 				return small_rotate_left(std::move(node));
 			}
 			else {
-				// Делаем большой поворот налево
 				return big_rotate_left(std::move(node));
 			}
 		}
 
-		// Если уже сбалансировано, просто возвращаем
 		return node;
 	}
 	
@@ -475,29 +485,45 @@ public:
 		return new_node;
 	}
 
-	std::unique_ptr<Node> insert_impl(std::unique_ptr<Node> node, const T& key) {
-		
-		// Если дошли до конца, то просто вставляем
+	//служебная функция рекурсивной вставки
+	std::unique_ptr<Node> insert_impl(std::unique_ptr<Node> node, const T& key,
+		bool& height_changed) {
 		if (!node) {
+			height_changed = true;
 			++node_count;
 			return std::make_unique<Node>(key);
 		}
 
+		bool child_height_changed = false;
 		if (key < node->key) {
-			node->left = insert_impl(std::move(node->left), key);
+			node->left = insert_impl(std::move(node->left), key, child_height_changed);
 		}
 		else if (key > node->key) {
-			node->right = insert_impl(std::move(node->right), key);
+			node->right = insert_impl(std::move(node->right), key, child_height_changed);
 		}
 		else {
-			// Дубликат - не добавляем
+			height_changed = false;  // Дубликат
 			return node;
 		}
 
-		// 2. Обновляем высоту текущего узла
+		if (!child_height_changed) {
+			// Высота поддерева не изменилась - пропускаем балансировку
+			height_changed = false;
+			return node;
+		}
+
+		// Сохраняем старую высоту
+		int old_height = node->height;
 		node->upd_height();
 
-		// 3. Балансируем дерево
+		if (node->height == old_height) {
+			// Высота не изменилась
+			height_changed = false;
+			return node;
+		}
+
+		// Высота изменилась - проверяем баланс
+		height_changed = true;
 		return balance(std::move(node));
 	}
 

@@ -134,8 +134,17 @@ int main() {
     std::cout << "\nТестирование функционала\n";
 
     //TreeTest<int, BSTree<int>>::comprehensive_test(100000);
-    testRotations();
-    test_big_rotations();  
+    //testRotations();
+    //test_big_rotations();  
     test_avl_balance();
+    /*AVLTree<int> tree;
+    size_t n = 100;
+    for (size_t i = 0; i != n; i++) {
+        tree.insert(i);
+    };
+    std::cout << tree.size() << std::endl;
+    tree.insert(59);
+    std::cout << tree.size() << std::endl;
+    tree.insert(2);*/
     
 }

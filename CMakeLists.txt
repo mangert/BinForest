@@ -24,3 +24,7 @@ target_include_directories(BinForest PRIVATE
     ${CMAKE_SOURCE_DIR}/src    
 )
 
+# Для debug сборки включаем проверки
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_compile_definitions(BinForest PRIVATE _DEBUG)
+endif()

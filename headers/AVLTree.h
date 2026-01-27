@@ -37,10 +37,11 @@ public:
 		//служебная функция обновления высоты узла
 		void upd_height() {						
 
+		#ifdef _DEBUG //отладочный код
 			static int counter = 0;
 			counter++;
 			std::cout << "upd_height call #" << counter << " for node " << key << "\n";
-
+		#endif
 			
 			int left_height = left ? left->height : -1;
 			int right_height = right ? right->height : -1;
@@ -48,12 +49,14 @@ public:
 		}
 
 		// Баланс-фактор
-		int balance_factor() const {
+		int balance_factor() const {			
+			
 			int left_height = left ? left->height : -1;
 			int right_height = right ? right->height : -1;
 			return left_height - right_height;
 		}
 
+		#ifdef _DEBUG //отладочный код
 		void debug_print() const {
 			std::cout << "Node " << key
 				<< " [height=" << height
@@ -61,6 +64,7 @@ public:
 				<< ", right=" << (right ? std::to_string(right->key) : "null")
 				<< ", balance=" << balance_factor() << "]\n";
 		}
+		#endif
 	};
 
 public:
@@ -104,11 +108,11 @@ public:
 
 	//--------- Основные операции -------//
 	//вставка (рекурсивно)
-	void insert(const T& key) override {
-		std::cout << "Ins " << key << " size before" << size() << std::endl;
+	void insert(const T& key) override {		
+		
 		bool height_changed = false;
 		root = insert_impl(std::move(root), key, height_changed);
-		std::cout << "Ins " << key << " size after" << size() << std::endl;
+		
 	};
 
 	//поиск элемента
@@ -136,7 +140,8 @@ public:
 
 	//удаление элемента
 	void remove(const T& key) override {
-		//TODO
+		bool height_changed = false;
+		root = remove_impl(std::move(root), key, height_changed);
 	}
 
 	//очистка дерева (итеративно)
@@ -294,7 +299,7 @@ public:
 	// --------- Вращения --------- //
 	// Функции принимают владение узлом, возвращают новый корень поддерева
 	static std::unique_ptr<Node> small_rotate_left(std::unique_ptr<Node> x) {
-
+		
 		auto y = std::move(x->right); // Забираем правое поддерево
 		x->right = std::move(y->left);   // Перемещаем левое поддерево y в правое x
 		y->left = std::move(x);          // x становится левым ребёнком y
@@ -333,16 +338,12 @@ public:
 		
 		x->right = small_rotate_right(std::move(x->right));   
 		
-		//x->upd_height();    
-		
 		return small_rotate_left(std::move(x));		
 	}
 
 	static std::unique_ptr<Node> big_rotate_right(std::unique_ptr<Node> x) {
 
 		x->left = small_rotate_left(std::move(x->left));
-		
-		//x->upd_height();
 
 		return small_rotate_right(std::move(x));;
 	}
@@ -354,13 +355,7 @@ public:
 		int bf = node->balance_factor();
 
 		if (bf > 1) {  // Левый перевес
-			if (node->left) {
-				node->left->upd_height();
-			}
-
-			int left_bf = node->left ? node->left->balance_factor() : 0;
-
-			if (left_bf >= 0) {
+			if (node->left->balance_factor() >= 0) {
 				return small_rotate_right(std::move(node));
 			}
 			else {
@@ -369,21 +364,14 @@ public:
 		}
 
 		if (bf < -1) {  // Правый перевес
-			if (node->right) {
-				node->right->upd_height();
-			}
-
-			int right_bf = node->right ? node->right->balance_factor() : 0;
-
-			if (right_bf <= 0) {
+			if (node->right->balance_factor() <= 0) {
 				return small_rotate_left(std::move(node));
 			}
 			else {
 				return big_rotate_left(std::move(node));
 			}
 		}
-
-		return node;
+		return node; 	
 	}
 	
 	// --------- Шаблонные реализации обходов --------- //
@@ -457,7 +445,7 @@ public:
 
 		while (!current_lvl.empty()) {
 			std::vector<const Node*> next_lvl;
-			next_lvl.reserve(current_lvl.size() * 2);  // Оптимизация!
+			next_lvl.reserve(current_lvl.size() * 2);  // Оптимизация
 
 			for (const Node* node : current_lvl) {
 				action(node->key);
@@ -522,20 +510,93 @@ public:
 			return node;
 		}
 
-		// Высота изменилась - проверяем баланс
+		// Высота изменилась - балансируем
 		height_changed = true;
-		return balance(std::move(node));
+		return balance(std::move(node)); 
+	}
+	//--------- рекурсивное удаление
+	// Находим узел с минимальным ключом в поддереве
+	static Node* find_min(Node* node) {
+		while (node && node->left) {
+			node = node->left.get();
+		}
+		return node;
 	}
 
-	//служебная функция удаления узла
-	static void remove_node(std::stack<std::unique_ptr<Node>*>& path) {
-		//TODO		
+	// Находим узел с максимальным ключом в поддереве  
+	static Node* find_max(Node* node) {
+		while (node && node->right) {
+			node = node->right.get();
+		}
+		return node;
 	}
-	
 
+	std::unique_ptr<Node> remove_impl(std::unique_ptr<Node> node, const T& key, bool& height_changed) {
+		if (!node) {
+			height_changed = false;
+			return nullptr;  // Ключ не найден
+		}
 
-public:
+		bool child_height_changed = false;
+
+		if (key < node->key) {
+			// Ищем в левом поддереве
+			node->left = remove_impl(std::move(node->left), key, child_height_changed);
+		}
+		else if (key > node->key) {
+			// Ищем в правом поддереве
+			node->right = remove_impl(std::move(node->right), key, child_height_changed);
+		}
+		else {
+			// Нашли узел для удаления
+			height_changed = true;  // Удаление всегда может изменить высоту
+			--node_count;  // Уменьшаем счетчик
+
+			// Случай 1: Узел - лист (нет детей)
+			if (!node->left && !node->right) {
+				return nullptr;
+			}
+
+			// Случай 2: Узел имеет только одного ребенка
+			if (!node->left) {
+				return std::move(node->right);  // Правый ребенок становится на место узла
+			}
+			if (!node->right) {
+				return std::move(node->left);   // Левый ребенок становится на место узла
+			}
+
+			// Случай 3: Узел имеет двух детей
+			// Находим минимальный узел в правом поддереве (ну так захотелось, можно максимальный в правом)
+			Node* successor = find_min(node->right.get());
+
+			// Копируем значение преемника в текущий узел
+			node->key = successor->key;
+
+			// Рекурсивно удаляем преемника
+			node->right = remove_impl(std::move(node->right), successor->key, child_height_changed);
+		}
+
+		// После удаления проверяем балансировку
+		if (child_height_changed) {
+			int old_height = node->height;
+			node->upd_height();
+
+			if (node->height == old_height) {
+				height_changed = false;
+			}
+			else {
+				height_changed = true;
+				return balance(std::move(node));
+			}
+		}
+		else {
+			height_changed = false;
+		}
+
+		return node;
+	}	
+
+protected:
 	std::unique_ptr<Node> root = nullptr;
 	size_t node_count = 0;
 };
-

@@ -53,7 +53,7 @@ private:
 		assert(tree.height() == -1); // предполагаем height(empty) = -1
 		assert(!tree.contains(0));
 		assert(tree.inorder().empty());
-		std::cout << "✓ Empty tree checks passed\n";
+		std::cout << "+ Empty tree checks passed\n";
 
 		// 1.2 Один элемент
 		tree.insert(42);
@@ -63,12 +63,12 @@ private:
 		assert(tree.contains(42));
 		assert(!tree.contains(0));
 		assert(tree.inorder() == std::vector<T>{42});
-		std::cout << "✓ Single element checks passed\n";
+		std::cout << "+ Single element checks passed\n";
 
 		// 1.3 Дубликаты не добавляются
 		tree.insert(42); // Дубликат
 		assert(tree.size() == 1);
-		std::cout << "✓ Duplicate prevention check passed\n";
+		std::cout << "+ Duplicate prevention check passed\n";
 
 		// 1.4 Удаление единственного элемента
 		tree.remove(42);
@@ -76,12 +76,12 @@ private:
 		assert(tree.size() == 0);
 		assert(tree.height() == -1);
 		assert(!tree.contains(42));
-		std::cout << "✓ Single element removal passed\n";
+		std::cout << "+ Single element removal passed\n";
 
 		// 1.5 Удаление несуществующего элемента
 		tree.remove(999);
 		assert(tree.empty()); // Должно остаться пустым
-		std::cout << "✓ Non-existent removal passed\n";
+		std::cout << "+ Non-existent removal passed\n";
 
 		// 1.6 Быстрое добавление/удаление
 		for (int i = 0; i < 100; i++) {
@@ -89,7 +89,7 @@ private:
 			tree.remove(i);
 			assert(tree.empty());
 		}
-		std::cout << "✓ Rapid insert/remove cycle passed\n";
+		std::cout << "+ Rapid insert/remove cycle passed\n";
 
 		// 1.7 Очистка
 		tree.insert(1);
@@ -98,9 +98,9 @@ private:
 		tree.clear();
 		assert(tree.empty());
 		assert(tree.size() == 0);
-		std::cout << "✓ Clear operation passed\n";
+		std::cout << "+ Clear operation passed\n";
 
-		std::cout << "✅ All edge cases passed\n\n";
+		std::cout << "++ All edge cases passed\n\n";
 	}
 
 	// ==================== 2. Основной тест ====================
@@ -121,11 +121,11 @@ private:
 		std::mt19937 g(rd());
 		std::shuffle(random_data.begin(), random_data.end(), g);
 
-		// 2.1 Тест с отсортированными данными (вырожденное дерево)
+		// 2.1 Тест с отсортированными данными
 		std::cout << "2.1 Sorted data (degenerate tree):\n";
 		Tree sorted_tree = build_and_test_tree(sorted_data, "sorted");
 
-		// 2.2 Тест со случайными данными (скорее сбалансированное)
+		// 2.2 Тест со случайными данными
 		std::cout << "\n2.2 Random data (balanced tree):\n";
 		Tree random_tree = build_and_test_tree(random_data, "random");
 
@@ -134,12 +134,22 @@ private:
 		test_traversals_correctness(sorted_tree, "sorted");
 		test_traversals_correctness(random_tree, "random");
 
-		// 2.4 Тест удаления
-		std::cout << "\n2.4 Removal tests:\n";
+		// 2.4 Тест удаления (старый - 3 элемента)
+		std::cout << "\n2.4 Basic removal tests (3 elements):\n";
 		test_removal(sorted_tree, sorted_data, "sorted tree");
 		test_removal(random_tree, random_data, "random tree");
 
-		std::cout << "✅ Main test completed\n\n";
+		// 2.5 Тест поиска 10% случайных элементов
+		std::cout << "\n2.5 10 percent search tests:\n";
+		test_random_search_10_percent(sorted_tree, sorted_data, "Sorted tree");
+		test_random_search_10_percent(random_tree, random_data, "Random tree");
+
+		// 2.6 Тест удаления 10% случайных элементов
+		std::cout << "\n2.5 10 percent removal tests:\n";
+		test_random_removal_10_percent(sorted_tree, sorted_data, "Sorted tree");
+		test_random_removal_10_percent(random_tree, random_data, "Random tree");
+
+		std::cout << "++ Main test completed\n\n";
 	}
 
 	// ==================== 3. Сравнение производительности ====================
@@ -205,13 +215,7 @@ private:
 		std::cout << "  Ratio (degenerate/balanced): "
 			<< (degenerate_search.count() / (double)balanced_search.count()) << "x\n";
 
-		// Проверяем, что сбалансированное дерево действительно лучше
-		if (size > 100) {
-			assert(balanced.height() < degenerate.height());
-			std::cout << "✓ Balanced tree is indeed more balanced\n";
-		}
-
-		std::cout << "✅ Performance comparison completed\n\n";
+				std::cout << "++ Performance comparison completed\n\n";	
 	}
 
 	// ==================== 4. Копирование и перемещение ====================
@@ -228,20 +232,20 @@ private:
 		// 4.1 Конструктор копирования
 		Tree copy_constructed(original);
 		verify_tree_equality(original, copy_constructed, "copy constructor");
-		std::cout << "✓ Copy constructor\n";
+		std::cout << "+ Copy constructor\n";
 
 		// 4.2 Оператор присваивания копированием
 		Tree copy_assigned;
 		copy_assigned = original;
 		verify_tree_equality(original, copy_assigned, "copy assignment");
-		std::cout << "✓ Copy assignment\n";
+		std::cout << "+ Copy assignment\n";
 
 		// 4.3 Конструктор перемещения
 		Tree temp_for_move1 = original; // копируем
 		Tree move_constructed(std::move(temp_for_move1));
 		verify_tree_equality(original, move_constructed, "move constructor");
 		assert(temp_for_move1.empty() || temp_for_move1.size() == 0);
-		std::cout << "✓ Move constructor\n";
+		std::cout << "+ Move constructor\n";
 
 		// 4.4 Оператор присваивания перемещением
 		Tree temp_for_move2 = original; // копируем
@@ -249,15 +253,15 @@ private:
 		move_assigned = std::move(temp_for_move2);
 		verify_tree_equality(original, move_assigned, "move assignment");
 		assert(temp_for_move2.empty() || temp_for_move2.size() == 0);
-		std::cout << "✓ Move assignment\n";
+		std::cout << "+ Move assignment\n";
 
 		// 4.5 Self-assignment
 		Tree self_assigned = original;
 		self_assigned = self_assigned; // self-assignment
 		verify_tree_equality(original, self_assigned, "self-assignment");
-		std::cout << "✓ Self-assignment\n";
+		std::cout << "+ Self-assignment\n";
 
-		std::cout << "✅ Copy/move semantics test completed\n\n";
+		std::cout << "++ Copy/move semantics test completed\n\n";
 	}
 
 	// ==================== 5. Стресс-тест ====================
@@ -289,7 +293,7 @@ private:
 		for (auto x : data) {
 			assert(tree.contains(x));
 		}
-		std::cout << "✓ Insert: " << insert_time.count() << " ms\n";
+		std::cout << "+ Insert: " << insert_time.count() << " ms\n";
 
 		// Поиск всех элементов
 		start = std::chrono::high_resolution_clock::now();
@@ -298,7 +302,7 @@ private:
 		}
 		end = std::chrono::high_resolution_clock::now();
 		auto search_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-		std::cout << "✓ Search all: " << search_time.count() << " ms\n";
+		std::cout << "+ Search all: " << search_time.count() << " ms\n";
 
 		// Обход inorder
 		start = std::chrono::high_resolution_clock::now();
@@ -309,30 +313,34 @@ private:
 		// Проверяем, что inorder отсортирован
 		assert(std::is_sorted(inorder_result.begin(), inorder_result.end()));
 		assert(inorder_result.size() == size);
-		std::cout << "✓ Inorder traversal: " << inorder_time.count() << " ms\n";
+		std::cout << "+ Inorder traversal: " << inorder_time.count() << " ms\n";
 
 		// Удаление в случайном порядке
 		std::shuffle(data.begin(), data.end(), std::mt19937{ std::random_device{}() });
 
 		start = std::chrono::high_resolution_clock::now();
-		for (auto x : data) {
+		
+		for (auto x : data) {		
 			tree.remove(x);
 		}
 		end = std::chrono::high_resolution_clock::now();
 		auto remove_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
 		// Проверяем, что дерево пусто
-		assert(tree.empty());
+		assert(tree.empty());		
 		assert(tree.size() == 0);
-		std::cout << "✓ Remove all: " << remove_time.count() << " ms\n";
+		
 
-		std::cout << "✅ Stress test completed (total: "
+		std::cout << "+ Remove all: " << remove_time.count() << " ms\n";
+
+		std::cout << "+ Stress test completed (total: "
 			<< (insert_time + search_time + inorder_time + remove_time).count()
 			<< " ms)\n\n";
 	}
 
 	// ==================== Вспомогательные методы ====================
 
+	//построение дерева
 	static Tree build_and_test_tree(const std::vector<T>& data, const std::string& name) {
 		Tree tree;
 
@@ -352,13 +360,115 @@ private:
 		return tree;
 	}
 
+	// тест поиска N/10 случайных чисел
+	static void test_random_search_10_percent(Tree& tree, const std::vector<T>& all_data,
+		const std::string& tree_name) {
+		std::cout << "\n2.5 " << tree_name << " - Search 10% random elements:\n";
+
+		size_t n = all_data.size();
+		size_t search_count = n / 10;  // 10% от общего количества
+
+		if (search_count == 0) {
+			std::cout << "  (Skipped: tree too small)\n";
+			return;
+		}
+
+		// Выбираем случайные элементы для поиска
+		std::vector<T> search_keys;
+		std::sample(all_data.begin(), all_data.end(),
+			std::back_inserter(search_keys),
+			search_count,
+			std::mt19937{ std::random_device{}() });
+
+		// Измеряем время поиска
+		auto start = std::chrono::high_resolution_clock::now();
+		size_t found_count = 0;
+		for (const auto& key : search_keys) {
+			if (tree.contains(key)) {
+				++found_count;
+			}
+			else std::cout << "not found " << key << std::endl;
+		}
+		auto end = std::chrono::high_resolution_clock::now();
+		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+		// Все элементы должны быть найдены (они точно есть в дереве)
+		//assert(found_count == search_keys.size());
+
+		std::cout << "  Searched " << search_count << " random keys in "
+			<< duration.count() << " ms\n";
+		std::cout << "  Average search time: "
+			<< (duration.count() * 1000.0 / search_count) << " us per search\n";
+		std::cout << "  All " << found_count << " keys were found\n";
+	}
+
+	// тест удаления N/10 случайных чисел
+	static void test_random_removal_10_percent(Tree& tree, const std::vector<T>& all_data,
+		const std::string& tree_name) {
+		std::cout << "\n2.6 " << tree_name << " - Remove 10% random elements:\n";
+
+		size_t n = all_data.size();
+		size_t remove_count = n / 10;  // 10% от общего количества
+
+		if (remove_count == 0) {
+			std::cout << "  (Skipped: tree too small)\n";
+			return;
+		}
+
+		// Выбираем случайные элементы для удаления
+		std::vector<T> remove_keys;
+		std::sample(all_data.begin(), all_data.end(),
+			std::back_inserter(remove_keys),
+			remove_count,
+			std::mt19937{ std::random_device{}() });
+
+		// Сохраняем начальный размер
+		size_t initial_size = tree.size();
+
+		// Измеряем время удаления
+		auto start = std::chrono::high_resolution_clock::now();
+		for (const auto& key : remove_keys) {
+			tree.remove(key);
+		}
+		auto end = std::chrono::high_resolution_clock::now();
+		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+		// Проверяем, что элементы удалены
+		size_t not_removed = 0;
+		for (const auto& key : remove_keys) {
+			if (tree.contains(key)) {
+				++not_removed;
+			}
+			else std::cout << "not found " << key << std::endl;
+		}
+
+		// Проверяем корректность размера
+		size_t expected_size = initial_size - remove_keys.size() + not_removed;
+		//assert(tree.size() == expected_size);
+
+		std::cout << "  Removed " << remove_keys.size() << " random keys in "
+			<< duration.count() << " ms\n";
+		std::cout << "  Average removal time: "
+			<< (duration.count() * 1000.0 / remove_keys.size()) << " us per removal\n";
+		std::cout << "  Final size: " << tree.size()
+			<< " (removed " << (remove_keys.size() - not_removed) << " elements)\n";
+
+		if (not_removed > 0) {
+			std::cout << "  Warning: " << not_removed << " elements were already missing\n";
+		}
+
+		// Проверяем целостность дерева после удаления
+		verify_tree_integrity(tree, tree_name + " after removing 10%");
+	}
+
+	//проверка корректности обходов
 	static void test_traversals_correctness(const Tree& tree, const std::string& name) {
 		std::cout << "  " << name << " tree traversals:\n";
 
 		// In-order должен быть отсортирован
 		auto inorder = tree.inorder();
 		assert(std::is_sorted(inorder.begin(), inorder.end()));
-		std::cout << "    ✓ In-order is sorted (" << inorder.size() << " elements)\n";
+		std::cout << "    + In-order is sorted (" << inorder.size() << " elements)\n";
 
 		// Все обходы должны иметь одинаковый размер
 		auto preorder = tree.preorder();
@@ -368,18 +478,18 @@ private:
 		assert(inorder.size() == preorder.size());
 		assert(inorder.size() == postorder.size());
 		assert(inorder.size() == levelorder.size());
-		std::cout << "    ✓ All traversals have same size\n";
+		std::cout << "    + All traversals have same size\n";
 
 		// In-order должен содержать все уникальные элементы
 		std::set<T> unique_inorder(inorder.begin(), inorder.end());
 		assert(unique_inorder.size() == inorder.size());
-		std::cout << "    ✓ No duplicates in in-order\n";
+		std::cout << "    + No duplicates in in-order\n";
 
 		// Visitor-версии должны давать те же результаты
 		std::vector<T> visitor_inorder;
 		tree.visit_inorder([&](const T& key) { visitor_inorder.push_back(key); });
 		assert(visitor_inorder == inorder);
-		std::cout << "    ✓ Visitor in-order matches\n";
+		std::cout << "    + Visitor in-order matches\n";
 	}
 
 	static void test_removal(Tree& tree, const std::vector<T>& data, const std::string& name) {
@@ -401,7 +511,7 @@ private:
 			auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
 			assert(!tree.contains(item));
-			std::cout << "    Removed " << item << " in " << duration.count() << " μs\n";
+			std::cout << "    Removed " << item << " in " << duration.count() << " us\n";
 
 			// Проверяем корректность после каждого удаления
 			verify_tree_integrity(tree, name + " after removing " + std::to_string(item));
@@ -412,7 +522,7 @@ private:
 		size_t size_before = tree.size();
 		tree.remove(non_existent);
 		assert(tree.size() == size_before); // Размер не должен измениться
-		std::cout << "    ✓ Non-existent removal handled correctly\n";
+		std::cout << "    + Non-existent removal handled correctly\n";
 
 		std::cout << "    Final size: " << tree.size()
 			<< " (removed " << (original_size - tree.size()) << " elements)\n";

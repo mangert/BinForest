@@ -346,7 +346,7 @@ int main() {
     test_avl_height_updates();
     std::cout << "А теперь еще и вот этот" << std::endl;
     test_avl_balance_properties();*/
-    test_avl_removal();
-    test_avl_removal_with_balance();
-    
+    //test_avl_removal();
+    //test_avl_removal_with_balance();
+    TreeTest<int, AVLTree<int>>::comprehensive_test(10000000);
 }

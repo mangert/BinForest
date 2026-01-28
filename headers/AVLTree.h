@@ -38,9 +38,9 @@ public:
 		void upd_height() {						
 
 		#ifdef _DEBUG //отладочный код
-			static int counter = 0;
-			counter++;
-			std::cout << "upd_height call #" << counter << " for node " << key << "\n";
+			//static int counter = 0;
+			//counter++;
+			//std::cout << "upd_height call #" << counter << " for node " << key << "\n";
 		#endif
 			
 			int left_height = left ? left->height : -1;
@@ -294,7 +294,7 @@ public:
 	}
 
 
-public:
+protected:
 	
 	// --------- Вращения --------- //
 	// Функции принимают владение узлом, возвращают новый корень поддерева
@@ -465,7 +465,7 @@ public:
 		if (!source) return nullptr;
 
 		auto new_node = std::make_unique<Node>(source->key);
-		new_node->n_height = source->n_height;  // копируем высоту
+		new_node->height = source->height;  // копируем высоту
 
 		new_node->left = clone(source->left.get());
 		new_node->right = clone(source->right.get());
@@ -530,7 +530,7 @@ public:
 		}
 		return node;
 	}
-
+	 //служебная функция рекурсивного удаления
 	std::unique_ptr<Node> remove_impl(std::unique_ptr<Node> node, const T& key, bool& height_changed) {
 		if (!node) {
 			height_changed = false;
@@ -550,22 +550,24 @@ public:
 		else {
 			// Нашли узел для удаления
 			height_changed = true;  // Удаление всегда может изменить высоту
-			--node_count;  // Уменьшаем счетчик
 
-			// Случай 1: Узел - лист (нет детей)
+			//Узел - лист (нет детей)
 			if (!node->left && !node->right) {
+				--node_count;  // Уменьшаем счетчик
 				return nullptr;
 			}
 
-			// Случай 2: Узел имеет только одного ребенка
+			//Узел имеет только одного ребенка
 			if (!node->left) {
+				--node_count;  // Уменьшаем счетчик
 				return std::move(node->right);  // Правый ребенок становится на место узла
 			}
 			if (!node->right) {
+				--node_count;  // Уменьшаем счетчик
 				return std::move(node->left);   // Левый ребенок становится на место узла
 			}
 
-			// Случай 3: Узел имеет двух детей
+			//Узел имеет двух детей
 			// Находим минимальный узел в правом поддереве (ну так захотелось, можно максимальный в правом)
 			Node* successor = find_min(node->right.get());
 

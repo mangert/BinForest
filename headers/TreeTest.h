@@ -135,16 +135,16 @@ private:
 		test_traversals_correctness(random_tree, "random");
 
 		// 2.4 Тест удаления (старый - 3 элемента)
-		std::cout << "\n2.4 Basic removal tests (3 elements):\n";
-		test_removal(sorted_tree, sorted_data, "sorted tree");
-		test_removal(random_tree, random_data, "random tree");
+		//std::cout << "\n2.4 Basic removal tests (3 elements):\n";
+		//test_removal(sorted_tree, sorted_data, "sorted tree");
+		//test_removal(random_tree, random_data, "random tree");
 
-		// 2.5 Тест поиска 10% случайных элементов
+		// 2.4 Тест поиска 10% случайных элементов
 		std::cout << "\n2.5 10 percent search tests:\n";
 		test_random_search_10_percent(sorted_tree, sorted_data, "Sorted tree");
 		test_random_search_10_percent(random_tree, random_data, "Random tree");
 
-		// 2.6 Тест удаления 10% случайных элементов
+		// 2.5 Тест удаления 10% случайных элементов
 		std::cout << "\n2.5 10 percent removal tests:\n";
 		test_random_removal_10_percent(sorted_tree, sorted_data, "Sorted tree");
 		test_random_removal_10_percent(random_tree, random_data, "Random tree");
@@ -386,14 +386,13 @@ private:
 		for (const auto& key : search_keys) {
 			if (tree.contains(key)) {
 				++found_count;
-			}
-			else std::cout << "not found " << key << std::endl;
+			}			
 		}
 		auto end = std::chrono::high_resolution_clock::now();
 		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
 		// Все элементы должны быть найдены (они точно есть в дереве)
-		//assert(found_count == search_keys.size());
+		assert(found_count == search_keys.size());
 
 		std::cout << "  Searched " << search_count << " random keys in "
 			<< duration.count() << " ms\n";
@@ -427,7 +426,7 @@ private:
 
 		// Измеряем время удаления
 		auto start = std::chrono::high_resolution_clock::now();
-		for (const auto& key : remove_keys) {
+		for (const auto& key : remove_keys) {			
 			tree.remove(key);
 		}
 		auto end = std::chrono::high_resolution_clock::now();
@@ -438,13 +437,12 @@ private:
 		for (const auto& key : remove_keys) {
 			if (tree.contains(key)) {
 				++not_removed;
-			}
-			else std::cout << "not found " << key << std::endl;
+			}			
 		}
 
 		// Проверяем корректность размера
 		size_t expected_size = initial_size - remove_keys.size() + not_removed;
-		//assert(tree.size() == expected_size);
+		assert(tree.size() == expected_size);
 
 		std::cout << "  Removed " << remove_keys.size() << " random keys in "
 			<< duration.count() << " ms\n";

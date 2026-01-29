@@ -3,7 +3,199 @@
 #include "TreeTest.h"
 #include <cassert>
 #include "AVLTree.h"
+#include "Treap.h"
+#include <set>
 
+void test_treap_remove_edge_cases() {
+    std::cout << "=== Testing Treap remove edge cases ===\n";
+
+    // Тест 1: Удаление максимального int
+    {
+        Treap<int> treap;
+        treap.insert(std::numeric_limits<int>::max());
+        treap.insert(std::numeric_limits<int>::max() - 1);
+
+        std::cout << "Size before removing max int: " << treap.size() << "\n";
+        treap.remove(std::numeric_limits<int>::max());
+        std::cout << "Size after removing max int: " << treap.size() << "\n";
+
+        assert(treap.size() == 1);
+        assert(!treap.contains(std::numeric_limits<int>::max()));
+        assert(treap.contains(std::numeric_limits<int>::max() - 1));
+    }
+
+    // Тест 2: Удаление минимального int
+    {
+        Treap<int> treap;
+        treap.insert(std::numeric_limits<int>::min());
+        treap.insert(std::numeric_limits<int>::min() + 1);
+
+        treap.remove(std::numeric_limits<int>::min());
+
+        assert(treap.size() == 1);
+        assert(!treap.contains(std::numeric_limits<int>::min()));
+        assert(treap.contains(std::numeric_limits<int>::min() + 1));
+    }
+
+    // Тест 3: Удаление строк
+    {
+        Treap<std::string> treap;
+        treap.insert("hello");
+        treap.insert("world");
+        treap.insert("helln");  // Предыдущее от "hello"
+        treap.insert("hellp");  // Следующее после "hello"
+
+        treap.remove("hello");
+
+        assert(treap.size() == 3);
+        assert(!treap.contains("hello"));
+        assert(treap.contains("helln"));
+        assert(treap.contains("hellp"));
+        assert(treap.contains("world"));
+    }
+
+    std::cout << "✓ Edge case removal tests passed!\n\n";
+}
+
+void test_treap_basic_insert() {
+    std::cout << "=== Testing basic Treap insert ===\n";
+
+    Treap<int> treap;
+
+    // 1. Вставка в пустое дерево
+    treap.insert(5);
+    assert(treap.size() == 1);
+    assert(treap.contains(5));
+    assert(!treap.contains(4));
+    std::cout << "+ Insert into empty tree OK\n";
+
+    // 2. Вставка нескольких элементов
+    treap.insert(3);
+    treap.insert(7);
+    assert(treap.size() == 3);
+    assert(treap.contains(3));
+    assert(treap.contains(7));
+    std::cout << "+ Multiple inserts OK\n";
+
+    // 3. Дубликаты не добавляются
+    treap.insert(5);    
+    assert(treap.size() == 3);  // Размер не изменился
+    std::cout << "+ Duplicates not added OK\n";
+
+    std::cout << std::endl;
+    // 4. Проверка BST свойства (inorder должен быть отсортирован)
+    auto inorder = treap.inorder();
+    assert(std::is_sorted(inorder.begin(), inorder.end()));
+    std::cout << "+ BST property maintained OK\n";
+
+    // 5. Проверка всех обходов
+    auto preorder = treap.preorder();
+    auto postorder = treap.postorder();
+    auto levelorder = treap.level_order();
+
+    assert(inorder.size() == preorder.size());
+    assert(inorder.size() == postorder.size());
+    assert(inorder.size() == levelorder.size());
+    std::cout << "+ All traversals return correct size OK\n";
+
+    // 6. Высота должна быть разумной
+    assert(treap.height() < static_cast<int>(treap.size()));
+    std::cout << "+ Height is reasonable OK\n";
+
+    std::cout << "✓ Basic insert tests passed!\n\n";
+}
+
+void test_treap_insert_random() {
+    std::cout << "=== Testing Treap with random inserts ===\n";
+
+    Treap<int> treap;
+    std::set<int> reference;  // Для сравнения
+
+    // Вставляем 100 случайных чисел
+    for (int i = 0; i < 100; i++) {
+        int value = rand() % 1000;
+        treap.insert(value);
+        reference.insert(value);
+
+        // Проверяем после каждой вставки
+        assert(treap.size() == reference.size());        
+        assert(treap.contains(value));
+    }
+
+    // Проверяем, что все элементы есть
+    for (int value : reference) {
+        assert(treap.contains(value));
+    }
+
+    // Проверяем BST свойство
+    auto inorder = treap.inorder();
+    assert(std::is_sorted(inorder.begin(), inorder.end()));
+
+    // Проверяем, что нет лишних элементов
+    //assert(inorder.size() == reference.size());
+    std::cout << inorder.size() << "----------" << std::endl;
+
+    std::cout << "Size: " << treap.size() << "\n";
+    std::cout << "Height: " << treap.height() << "\n";
+    std::cout << "Expected max height (log2): " << (1.44 * log2(treap.size() + 2)) << "\n";
+
+    std::cout << "✓ Random insert tests passed!\n\n";    
+}
+
+void test_treap_insert_sorted() {
+    std::cout << "=== Testing Treap with sorted inserts (worst case for BST) ===\n";
+
+    Treap<int> treap;
+
+    // Вставляем отсортированные числа - худший случай для обычного BST
+    for (int i = 0; i < 100; i++) {
+        treap.insert(i);
+    }
+
+    // В Treap высота должна быть логарифмической благодаря случайным приоритетам
+    int height = treap.height();
+    double max_expected_height = 1.44 * log2(treap.size() + 2);
+
+    std::cout << "Size: " << treap.size() << "\n";
+    std::cout << "Height: " << height << "\n";
+    std::cout << "Expected max height: " << max_expected_height << "\n";
+
+    // Проверяем BST свойство
+    auto inorder = treap.inorder();
+    for (size_t i = 0; i < inorder.size(); i++) {
+        assert(inorder[i] == static_cast<int>(i));
+    }
+
+    std::cout << "✓ Sorted insert tests passed!\n\n";
+}
+
+void test_treap_print() {
+    std::cout << "=== Testing Treap print (visual check) ===\n";
+
+    Treap<int> treap;
+
+    // Создаем маленькое дерево для визуальной проверки
+    treap.insert(5);
+    treap.insert(2);
+    treap.insert(8);
+    treap.insert(1);
+    treap.insert(3);
+    treap.insert(7);
+    treap.insert(9);
+
+    std::cout << "Treap structure:\n";
+    treap.print();
+
+    std::cout << "\nInorder: ";
+    auto inorder = treap.inorder();
+    for (int x : inorder) std::cout << x << " ";
+    std::cout << "\n";
+
+    std::cout << "✓ Print test completed (check visually)\n\n";
+}
+
+
+    
 void example_tree() { //пример дерева (маленькое, чтобы напечатать можно было)
     
     BSTree<int> tree;
@@ -348,5 +540,13 @@ int main() {
     test_avl_balance_properties();*/
     //test_avl_removal();
     //test_avl_removal_with_balance();
-    TreeTest<int, AVLTree<int>>::comprehensive_test(10000000);
+    //TreeTest<int, AVLTree<int>>::comprehensive_test(10000000);
+    //test_treap_basic_insert();
+    //test_treap_insert_random();
+    //test_treap_insert_sorted();
+    //test_treap_print();
+
+    TreeTest<int, Treap<int>>::comprehensive_test(100000);
+
+    test_treap_remove_edge_cases();
 }

@@ -12,7 +12,7 @@ endif()
 project ("BinForest")
 
 # Add source to this project's executable.
-add_executable (BinForest "src/main.cpp" "headers/AVLTree.h" "headers/Treap.h")
+add_executable (BinForest "src/main.cpp")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET BinForest PROPERTY CXX_STANDARD 20)

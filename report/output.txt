@@ -1,0 +1,444 @@
+
+Тестирование функционала деревьев
+
+-------- Часть 1: n= 1000000
+****** BSTree **********************
+========================================
+COMPREHENSIVE TREE TEST (size = 1000000)
+========================================
+
+1. EDGE CASES TEST
+------------------
++ Empty tree checks passed
++ Single element checks passed
++ Duplicate prevention check passed
++ Single element removal passed
++ Non-existent removal passed
++ Rapid insert/remove cycle passed
++ Clear operation passed
+++ All edge cases passed
+
+2. MAIN TEST (sorted vs random data)
+-------------------------------------
+2.1 Sorted data (degenerate tree):
+  Built in 3336562 ms
+  Size: 1000000, Height: 999999
+
+2.2 Random data (balanced tree):
+  Built in 625 ms
+  Size: 1000000, Height: 52
+
+2.3 Traversal correctness:
+  sorted tree traversals:
+    + In-order is sorted (1000000 elements)
+    + All traversals have same size
+    + No duplicates in in-order
+    + Visitor in-order matches
+  random tree traversals:
+    + In-order is sorted (1000000 elements)
+    + All traversals have same size
+    + No duplicates in in-order
+    + Visitor in-order matches
+
+2.5 10 percent search tests:
+
+2.5 Sorted tree - Search 10% random elements:
+  Searched 100000 random keys in 392161 ms
+  Average search time: 3921.61 us per search
+  All 100000 keys were found
+
+2.5 Random tree - Search 10% random elements:
+  Searched 100000 random keys in 64 ms
+  Average search time: 0.64 us per search
+  All 100000 keys were found
+
+2.5 10 percent removal tests:
+
+2.6 Sorted tree - Remove 10% random elements:
+  Removed 100000 random keys in 2486831 ms
+  Average removal time: 24868.3 us per removal
+  Final size: 900000 (removed 100000 elements)
+
+2.6 Random tree - Remove 10% random elements:
+  Removed 100000 random keys in 225 ms
+  Average removal time: 2.25 us per removal
+  Final size: 900000 (removed 100000 elements)
+++ Main test completed
+
+3. PERFORMANCE COMPARISON
+-------------------------
+Skipping performance test for large size (>100k)
+4. COPY/MOVE SEMANTICS TEST
+---------------------------
++ Copy constructor
++ Copy assignment
++ Move constructor
++ Move assignment
++ Self-assignment
+++ Copy/move semantics test completed
+
+5. STRESS TEST (size = 5000)
+-----------------------
++ Insert: 0 ms
++ Search all: 0 ms
++ Inorder traversal: 0 ms
++ Remove all: 5 ms
++ Stress test completed (total: 5 ms)
+
+
+========================================
+ALL TESTS PASSED SUCCESSFULLY!
+========================================
+****** AVLTree *********************
+========================================
+COMPREHENSIVE TREE TEST (size = 1000000)
+========================================
+
+1. EDGE CASES TEST
+------------------
++ Empty tree checks passed
++ Single element checks passed
++ Duplicate prevention check passed
++ Single element removal passed
++ Non-existent removal passed
++ Rapid insert/remove cycle passed
++ Clear operation passed
+++ All edge cases passed
+
+2. MAIN TEST (sorted vs random data)
+-------------------------------------
+2.1 Sorted data (degenerate tree):
+  Built in 302 ms
+  Size: 1000000, Height: 19
+
+2.2 Random data (balanced tree):
+  Built in 999 ms
+  Size: 1000000, Height: 23
+
+2.3 Traversal correctness:
+  sorted tree traversals:
+    + In-order is sorted (1000000 elements)
+    + All traversals have same size
+    + No duplicates in in-order
+    + Visitor in-order matches
+  random tree traversals:
+    + In-order is sorted (1000000 elements)
+    + All traversals have same size
+    + No duplicates in in-order
+    + Visitor in-order matches
+
+2.5 10 percent search tests:
+
+2.5 Sorted tree - Search 10% random elements:
+  Searched 100000 random keys in 15 ms
+  Average search time: 0.15 us per search
+  All 100000 keys were found
+
+2.5 Random tree - Search 10% random elements:
+  Searched 100000 random keys in 61 ms
+  Average search time: 0.61 us per search
+  All 100000 keys were found
+
+2.5 10 percent removal tests:
+
+2.6 Sorted tree - Remove 10% random elements:
+  Removed 100000 random keys in 38 ms
+  Average removal time: 0.38 us per removal
+  Final size: 900000 (removed 100000 elements)
+
+2.6 Random tree - Remove 10% random elements:
+  Removed 100000 random keys in 117 ms
+  Average removal time: 1.17 us per removal
+  Final size: 900000 (removed 100000 elements)
+++ Main test completed
+
+3. PERFORMANCE COMPARISON
+-------------------------
+Skipping performance test for large size (>100k)
+4. COPY/MOVE SEMANTICS TEST
+---------------------------
++ Copy constructor
++ Copy assignment
++ Move constructor
++ Move assignment
++ Self-assignment
+++ Copy/move semantics test completed
+
+5. STRESS TEST (size = 5000)
+-----------------------
++ Insert: 1 ms
++ Search all: 0 ms
++ Inorder traversal: 0 ms
++ Remove all: 1 ms
++ Stress test completed (total: 2 ms)
+
+
+========================================
+ALL TESTS PASSED SUCCESSFULLY!
+========================================
+****** Treap ***********************
+========================================
+COMPREHENSIVE TREE TEST (size = 1000000)
+========================================
+
+1. EDGE CASES TEST
+------------------
++ Empty tree checks passed
++ Single element checks passed
++ Duplicate prevention check passed
++ Single element removal passed
++ Non-existent removal passed
++ Rapid insert/remove cycle passed
++ Clear operation passed
+++ All edge cases passed
+
+2. MAIN TEST (sorted vs random data)
+-------------------------------------
+2.1 Sorted data (degenerate tree):
+  Built in 334 ms
+  Size: 1000000, Height: 52
+
+2.2 Random data (balanced tree):
+  Built in 1764 ms
+  Size: 1000000, Height: 51
+
+2.3 Traversal correctness:
+  sorted tree traversals:
+    + In-order is sorted (1000000 elements)
+    + All traversals have same size
+    + No duplicates in in-order
+    + Visitor in-order matches
+  random tree traversals:
+    + In-order is sorted (1000000 elements)
+    + All traversals have same size
+    + No duplicates in in-order
+    + Visitor in-order matches
+
+2.5 10 percent search tests:
+
+2.5 Sorted tree - Search 10% random elements:
+  Searched 100000 random keys in 15 ms
+  Average search time: 0.15 us per search
+  All 100000 keys were found
+
+2.5 Random tree - Search 10% random elements:
+  Searched 100000 random keys in 97 ms
+  Average search time: 0.97 us per search
+  All 100000 keys were found
+
+2.5 10 percent removal tests:
+
+2.6 Sorted tree - Remove 10% random elements:
+  Removed 100000 random keys in 83 ms
+  Average removal time: 0.83 us per removal
+  Final size: 900000 (removed 100000 elements)
+
+2.6 Random tree - Remove 10% random elements:
+  Removed 100000 random keys in 204 ms
+  Average removal time: 2.04 us per removal
+  Final size: 900000 (removed 100000 elements)
+++ Main test completed
+
+3. PERFORMANCE COMPARISON
+-------------------------
+Skipping performance test for large size (>100k)
+4. COPY/MOVE SEMANTICS TEST
+---------------------------
++ Copy constructor
++ Copy assignment
++ Move constructor
++ Move assignment
++ Self-assignment
+++ Copy/move semantics test completed
+
+5. STRESS TEST (size = 5000)
+-----------------------
++ Insert: 3 ms
++ Search all: 0 ms
++ Inorder traversal: 0 ms
++ Remove all: 2 ms
++ Stress test completed (total: 5 ms)
+
+
+========================================
+ALL TESTS PASSED SUCCESSFULLY!
+========================================
+-------- Часть 2: n= 10000000
+(BSTree не участвует в связи с длительным временем)
+****** AVLTree *********************
+========================================
+COMPREHENSIVE TREE TEST (size = 10000000)
+========================================
+
+1. EDGE CASES TEST
+------------------
++ Empty tree checks passed
++ Single element checks passed
++ Duplicate prevention check passed
++ Single element removal passed
++ Non-existent removal passed
++ Rapid insert/remove cycle passed
++ Clear operation passed
+++ All edge cases passed
+
+2. MAIN TEST (sorted vs random data)
+-------------------------------------
+2.1 Sorted data (degenerate tree):
+  Built in 3351 ms
+  Size: 10000000, Height: 23
+
+2.2 Random data (balanced tree):
+  Built in 16126 ms
+  Size: 10000000, Height: 27
+
+2.3 Traversal correctness:
+  sorted tree traversals:
+    + In-order is sorted (10000000 elements)
+    + All traversals have same size
+    + No duplicates in in-order
+    + Visitor in-order matches
+  random tree traversals:
+    + In-order is sorted (10000000 elements)
+    + All traversals have same size
+    + No duplicates in in-order
+    + Visitor in-order matches
+
+2.5 10 percent search tests:
+
+2.5 Sorted tree - Search 10% random elements:
+  Searched 1000000 random keys in 158 ms
+  Average search time: 0.158 us per search
+  All 1000000 keys were found
+
+2.5 Random tree - Search 10% random elements:
+  Searched 1000000 random keys in 1094 ms
+  Average search time: 1.094 us per search
+  All 1000000 keys were found
+
+2.5 10 percent removal tests:
+
+2.6 Sorted tree - Remove 10% random elements:
+  Removed 1000000 random keys in 426 ms
+  Average removal time: 0.426 us per removal
+  Final size: 9000000 (removed 1000000 elements)
+
+2.6 Random tree - Remove 10% random elements:
+  Removed 1000000 random keys in 1811 ms
+  Average removal time: 1.811 us per removal
+  Final size: 9000000 (removed 1000000 elements)
+++ Main test completed
+
+3. PERFORMANCE COMPARISON
+-------------------------
+Skipping performance test for large size (>100k)
+4. COPY/MOVE SEMANTICS TEST
+---------------------------
++ Copy constructor
++ Copy assignment
++ Move constructor
++ Move assignment
++ Self-assignment
+++ Copy/move semantics test completed
+
+5. STRESS TEST (size = 5000)
+-----------------------
++ Insert: 1 ms
++ Search all: 0 ms
++ Inorder traversal: 0 ms
++ Remove all: 1 ms
++ Stress test completed (total: 2 ms)
+
+
+========================================
+ALL TESTS PASSED SUCCESSFULLY!
+========================================
+****** Treap ***********************
+========================================
+COMPREHENSIVE TREE TEST (size = 10000000)
+========================================
+
+1. EDGE CASES TEST
+------------------
++ Empty tree checks passed
++ Single element checks passed
++ Duplicate prevention check passed
++ Single element removal passed
++ Non-existent removal passed
++ Rapid insert/remove cycle passed
++ Clear operation passed
+++ All edge cases passed
+
+2. MAIN TEST (sorted vs random data)
+-------------------------------------
+2.1 Sorted data (degenerate tree):
+  Built in 4012 ms
+  Size: 10000000, Height: 58
+
+2.2 Random data (balanced tree):
+  Built in 28984 ms
+  Size: 10000000, Height: 62
+
+2.3 Traversal correctness:
+  sorted tree traversals:
+    + In-order is sorted (10000000 elements)
+    + All traversals have same size
+    + No duplicates in in-order
+    + Visitor in-order matches
+  random tree traversals:
+    + In-order is sorted (10000000 elements)
+    + All traversals have same size
+    + No duplicates in in-order
+    + Visitor in-order matches
+
+2.5 10 percent search tests:
+
+2.5 Sorted tree - Search 10% random elements:
+  Searched 1000000 random keys in 166 ms
+  Average search time: 0.166 us per search
+  All 1000000 keys were found
+
+2.5 Random tree - Search 10% random elements:
+  Searched 1000000 random keys in 1828 ms
+  Average search time: 1.828 us per search
+  All 1000000 keys were found
+
+2.5 10 percent removal tests:
+
+2.6 Sorted tree - Remove 10% random elements:
+  Removed 1000000 random keys in 917 ms
+  Average removal time: 0.917 us per removal
+  Final size: 9000000 (removed 1000000 elements)
+
+2.6 Random tree - Remove 10% random elements:
+  Removed 1000000 random keys in 3112 ms
+  Average removal time: 3.112 us per removal
+  Final size: 9000000 (removed 1000000 elements)
+++ Main test completed
+
+3. PERFORMANCE COMPARISON
+-------------------------
+Skipping performance test for large size (>100k)
+4. COPY/MOVE SEMANTICS TEST
+---------------------------
++ Copy constructor
++ Copy assignment
++ Move constructor
++ Move assignment
++ Self-assignment
+++ Copy/move semantics test completed
+
+5. STRESS TEST (size = 5000)
+-----------------------
++ Insert: 3 ms
++ Search all: 0 ms
++ Inorder traversal: 0 ms
++ Remove all: 2 ms
++ Stress test completed (total: 5 ms)
+
+
+========================================
+ALL TESTS PASSED SUCCESSFULLY!
+========================================
+
+D:\Otus_Algo\BinForest\out\build\x64-release\BinForest.exe (process 7480) exited with code 0 (0x0).
+Press any key to close this window . . .

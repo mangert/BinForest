@@ -132,13 +132,8 @@ private:
 		// 2.3 Проверка корректности обходов
 		std::cout << "\n2.3 Traversal correctness:\n";
 		test_traversals_correctness(sorted_tree, "sorted");
-		test_traversals_correctness(random_tree, "random");
-
-		// 2.4 Тест удаления (старый - 3 элемента)
-		//std::cout << "\n2.4 Basic removal tests (3 elements):\n";
-		//test_removal(sorted_tree, sorted_data, "sorted tree");
-		//test_removal(random_tree, random_data, "random tree");
-
+		test_traversals_correctness(random_tree, "random");		
+		
 		// 2.4 Тест поиска 10% случайных элементов
 		std::cout << "\n2.5 10 percent search tests:\n";
 		test_random_search_10_percent(sorted_tree, sorted_data, "Sorted tree");
@@ -572,9 +567,3 @@ private:
 		}
 	}
 };
-
-// Упрощённая версия для быстрого тестирования
-template <std::integral T, std::derived_from<ITree<T>> Tree>
-void quick_test(size_t size = 1000) {
-	TreeTest<T, Tree>::comprehensive_test(size);
-}

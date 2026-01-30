@@ -1,4 +1,4 @@
-#pragma once
+п»ї#pragma once
 #include <iostream>
 #include <memory>
 #include <concepts>
@@ -13,42 +13,42 @@ class AVLTree : public ITree<T> {
 
 public:
 
-	struct Node { //структура для узла 
+	struct Node { //СЃС‚СЂСѓРєС‚СѓСЂР° РґР»СЏ СѓР·Р»Р° 
 		T key;
 		std::unique_ptr<Node> left;
 		std::unique_ptr<Node> right;
 		int height;
 
-		//Конструкторы и присваивание
+		//РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂС‹ Рё РїСЂРёСЃРІР°РёРІР°РЅРёРµ
 		explicit Node(const T& k)
 			: key(k), left(nullptr), right(nullptr), height(0) {
 		}
 
-		//Копирование
+		//РљРѕРїРёСЂРѕРІР°РЅРёРµ
 		Node(const Node&) = delete;
 		Node& operator=(const Node&) = delete;
 
-		//Перемещение
+		//РџРµСЂРµРјРµС‰РµРЅРёРµ
 		Node(Node&& other) noexcept = default;
 		Node& operator=(Node&& other) noexcept = default;
 
 		~Node() = default;
 
-		//служебная функция обновления высоты узла
+		//СЃР»СѓР¶РµР±РЅР°СЏ С„СѓРЅРєС†РёСЏ РѕР±РЅРѕРІР»РµРЅРёСЏ РІС‹СЃРѕС‚С‹ СѓР·Р»Р°
 		void upd_height() {						
 
-		#ifdef _DEBUG //отладочный код
-			//static int counter = 0;
-			//counter++;
-			//std::cout << "upd_height call #" << counter << " for node " << key << "\n";
-		#endif
+#ifdef _DEBUG //РѕС‚Р»Р°РґРѕС‡РЅС‹Р№ РєРѕРґ
+			static int counter = 0;
+			counter++;
+			std::cout << "upd_height call #" << counter << " for node " << key << "\n";
+#endif
 			
 			int left_height = left ? left->height : -1;
 			int right_height = right ? right->height : -1;
 			height = 1 + std::max(left_height, right_height);
 		}
 
-		// Баланс-фактор
+		// Р‘Р°Р»Р°РЅСЃ-С„Р°РєС‚РѕСЂ
 		int balance_factor() const {			
 			
 			int left_height = left ? left->height : -1;
@@ -56,7 +56,7 @@ public:
 			return left_height - right_height;
 		}
 
-		#ifdef _DEBUG //отладочный код
+#ifdef _DEBUG //РѕС‚Р»Р°РґРѕС‡РЅС‹Р№ РєРѕРґ
 		void debug_print() const {
 			std::cout << "Node " << key
 				<< " [height=" << height
@@ -64,20 +64,20 @@ public:
 				<< ", right=" << (right ? std::to_string(right->key) : "null")
 				<< ", balance=" << balance_factor() << "]\n";
 		}
-		#endif
+#endif
 	};
 
 public:
-	//--------- конструкторы и операторы присваивания -------//
+	//--------- РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂС‹ Рё РѕРїРµСЂР°С‚РѕСЂС‹ РїСЂРёСЃРІР°РёРІР°РЅРёСЏ -------//
 
-	AVLTree() = default;  // пустое дерево
+	AVLTree() = default;  // РїСѓСЃС‚РѕРµ РґРµСЂРµРІРѕ
 
 	AVLTree(T key) : root(std::make_unique<Node>(Node(key))), node_count(1) {};
 
-	// Конструктор копирования
+	// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєРѕРїРёСЂРѕРІР°РЅРёСЏ
 	AVLTree(const AVLTree& other) : root(clone(other.root.get())), node_count(other.node_count) {};
 
-	// Конструктор перемещения
+	// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РїРµСЂРµРјРµС‰РµРЅРёСЏ
 	AVLTree(AVLTree&& other) noexcept
 		: root(std::move(other.root)), node_count(other.node_count) {
 		other.root = nullptr;
@@ -87,7 +87,7 @@ public:
 		clear();
 	};
 
-	// Оператор копирующего присваивания
+	// РћРїРµСЂР°С‚РѕСЂ РєРѕРїРёСЂСѓСЋС‰РµРіРѕ РїСЂРёСЃРІР°РёРІР°РЅРёСЏ
 	AVLTree& operator=(const AVLTree& other) {
 		if (this != &other) {
 			root = clone(other.root.get());
@@ -96,7 +96,7 @@ public:
 		return *this;
 	};
 
-	// Оператор перемещающего присваивания
+	// РћРїРµСЂР°С‚РѕСЂ РїРµСЂРµРјРµС‰Р°СЋС‰РµРіРѕ РїСЂРёСЃРІР°РёРІР°РЅРёСЏ
 	AVLTree& operator=(AVLTree&& other) noexcept {
 		clear();
 		root = std::move(other.root);
@@ -106,8 +106,8 @@ public:
 		return *this;
 	};
 
-	//--------- Основные операции -------//
-	//вставка (рекурсивно)
+	//--------- РћСЃРЅРѕРІРЅС‹Рµ РѕРїРµСЂР°С†РёРё -------//
+	//РІСЃС‚Р°РІРєР° (СЂРµРєСѓСЂСЃРёРІРЅРѕ)
 	void insert(const T& key) override {		
 		
 		bool height_changed = false;
@@ -115,9 +115,9 @@ public:
 		
 	};
 
-	//поиск элемента
+	//РїРѕРёСЃРє СЌР»РµРјРµРЅС‚Р°
 	bool contains(const T& key) const override {
-		// Ранний выход для пустого дерева
+		// Р Р°РЅРЅРёР№ РІС‹С…РѕРґ РґР»СЏ РїСѓСЃС‚РѕРіРѕ РґРµСЂРµРІР°
 		if (!root) return false;
 
 		const Node* current = root.get();
@@ -138,24 +138,24 @@ public:
 		return false;
 	};
 
-	//удаление элемента
+	//СѓРґР°Р»РµРЅРёРµ СЌР»РµРјРµРЅС‚Р°
 	void remove(const T& key) override {
 		bool height_changed = false;
 		root = remove_impl(std::move(root), key, height_changed);
 	}
 
-	//очистка дерева (итеративно)
+	//РѕС‡РёСЃС‚РєР° РґРµСЂРµРІР° (РёС‚РµСЂР°С‚РёРІРЅРѕ)
 	void clear() override {
 		if (!root) return;
 
 		std::stack<std::unique_ptr<Node>> node_stack;
-		node_stack.push(std::move(root));  // Перемещаем владение в стек
+		node_stack.push(std::move(root));  // РџРµСЂРµРјРµС‰Р°РµРј РІР»Р°РґРµРЅРёРµ РІ СЃС‚РµРє
 
 		while (!node_stack.empty()) {
 			auto node = std::move(node_stack.top());
 			node_stack.pop();
 
-			// Перемещаем детей в стек перед удалением node
+			// РџРµСЂРµРјРµС‰Р°РµРј РґРµС‚РµР№ РІ СЃС‚РµРє РїРµСЂРµРґ СѓРґР°Р»РµРЅРёРµРј node
 			if (node->left) {
 				node_stack.push(std::move(node->left));
 			}
@@ -167,13 +167,13 @@ public:
 		node_count = 0;
 	}
 
-	//--------- Состояние -------//
-	//проверка на пустоту
+	//--------- РЎРѕСЃС‚РѕСЏРЅРёРµ -------//
+	//РїСЂРѕРІРµСЂРєР° РЅР° РїСѓСЃС‚РѕС‚Сѓ
 	bool empty() const override {
 		return !root;
 	};
 
-	// --------- Публичные методы обходов --------- //
+	// --------- РџСѓР±Р»РёС‡РЅС‹Рµ РјРµС‚РѕРґС‹ РѕР±С…РѕРґРѕРІ --------- //
 	std::vector<T> inorder() const override {
 		std::vector<T> result;
 		if (root) {
@@ -210,7 +210,7 @@ public:
 		return result;
 	}
 
-	// --------- Visitor методы  --------- //	
+	// --------- Visitor РјРµС‚РѕРґС‹  --------- //	
 	void visit_inorder(std::function<void(const T&)> visitor) const override {
 		if (visitor) inorder_impl(visitor);
 	}
@@ -224,13 +224,13 @@ public:
 		if (visitor) level_order_impl(visitor);
 	}
 
-	//--------- Метрики -------//
-	//размер
+	//--------- РњРµС‚СЂРёРєРё -------//
+	//СЂР°Р·РјРµСЂ
 	size_t size() const override {
 		return node_count;
 	};
 
-	//высота	
+	//РІС‹СЃРѕС‚Р°	
 	int height() const override {
 
 		if (!root) return -1;
@@ -253,7 +253,7 @@ public:
 		return height;
 	}
 
-	//--------- Печать -------//
+	//--------- РџРµС‡Р°С‚СЊ -------//
 	void print(std::ostream& os = std::cout) const override {
 
 		if (!root) {
@@ -275,7 +275,7 @@ public:
 
 				os << current->key;
 
-				// Показываем связи
+				// РџРѕРєР°Р·С‹РІР°РµРј СЃРІСЏР·Рё
 				if (current->left || current->right) {
 					os << "[";
 					if (current->left) os << "L:" << current->left->key;
@@ -296,42 +296,42 @@ public:
 
 protected:
 	
-	// --------- Вращения --------- //
-	// Функции принимают владение узлом, возвращают новый корень поддерева
+	// --------- Р’СЂР°С‰РµРЅРёСЏ --------- //
+	// Р¤СѓРЅРєС†РёРё РїСЂРёРЅРёРјР°СЋС‚ РІР»Р°РґРµРЅРёРµ СѓР·Р»РѕРј, РІРѕР·РІСЂР°С‰Р°СЋС‚ РЅРѕРІС‹Р№ РєРѕСЂРµРЅСЊ РїРѕРґРґРµСЂРµРІР°
 	static std::unique_ptr<Node> small_rotate_left(std::unique_ptr<Node> x) {
 		
-		auto y = std::move(x->right); // Забираем правое поддерево
-		x->right = std::move(y->left);   // Перемещаем левое поддерево y в правое x
-		y->left = std::move(x);          // x становится левым ребёнком y
+		auto y = std::move(x->right); // Р—Р°Р±РёСЂР°РµРј РїСЂР°РІРѕРµ РїРѕРґРґРµСЂРµРІРѕ
+		x->right = std::move(y->left);   // РџРµСЂРµРјРµС‰Р°РµРј Р»РµРІРѕРµ РїРѕРґРґРµСЂРµРІРѕ y РІ РїСЂР°РІРѕРµ x
+		y->left = std::move(x);          // x СЃС‚Р°РЅРѕРІРёС‚СЃСЏ Р»РµРІС‹Рј СЂРµР±С‘РЅРєРѕРј y
 
-		// Обновляем высоты
-		// Сначала обновляем бывший x (теперь y->left)
+		// РћР±РЅРѕРІР»СЏРµРј РІС‹СЃРѕС‚С‹
+		// РЎРЅР°С‡Р°Р»Р° РѕР±РЅРѕРІР»СЏРµРј Р±С‹РІС€РёР№ x (С‚РµРїРµСЂСЊ y->left)
 		if (y->left) {
 			y->left->upd_height();
 		}
 
-		// Потом новый корень y
+		// РџРѕС‚РѕРј РЅРѕРІС‹Р№ РєРѕСЂРµРЅСЊ y
 		y->upd_height();
 
-		return y;  // Возвращаем новый корень
+		return y;  // Р’РѕР·РІСЂР°С‰Р°РµРј РЅРѕРІС‹Р№ РєРѕСЂРµРЅСЊ
 	}
 
 	static std::unique_ptr<Node> small_rotate_right(std::unique_ptr<Node> x) {
 
-		auto y = std::move(x->left);    // Забираем левое поддерево
-		x->left = std::move(y->right);   // Перемещаем правое поддерево y в левое x
+		auto y = std::move(x->left);    // Р—Р°Р±РёСЂР°РµРј Р»РµРІРѕРµ РїРѕРґРґРµСЂРµРІРѕ
+		x->left = std::move(y->right);   // РџРµСЂРµРјРµС‰Р°РµРј РїСЂР°РІРѕРµ РїРѕРґРґРµСЂРµРІРѕ y РІ Р»РµРІРѕРµ x
 		y->right = std::move(x);
 
-		// Обновляем высоты
-		// Обновляем высоту бывшего x (теперь y->right)
+		// РћР±РЅРѕРІР»СЏРµРј РІС‹СЃРѕС‚С‹
+		// РћР±РЅРѕРІР»СЏРµРј РІС‹СЃРѕС‚Сѓ Р±С‹РІС€РµРіРѕ x (С‚РµРїРµСЂСЊ y->right)
 		if (y->right) {
 			y->right->upd_height();
 		}
 
-		// Потом новый корень y
+		// РџРѕС‚РѕРј РЅРѕРІС‹Р№ РєРѕСЂРµРЅСЊ y
 		y->upd_height();
 
-		return y;  // Возвращаем новый корень
+		return y;  // Р’РѕР·РІСЂР°С‰Р°РµРј РЅРѕРІС‹Р№ РєРѕСЂРµРЅСЊ
 	}
 	
 	static std::unique_ptr<Node> big_rotate_left(std::unique_ptr<Node> x) {	
@@ -348,13 +348,13 @@ protected:
 		return small_rotate_right(std::move(x));;
 	}
 
-	//Балансировка
+	//Р‘Р°Р»Р°РЅСЃРёСЂРѕРІРєР°
 	static std::unique_ptr<Node> balance(std::unique_ptr<Node> node) {
 		if (!node) return nullptr;
 		
 		int bf = node->balance_factor();
 
-		if (bf > 1) {  // Левый перевес
+		if (bf > 1) {  // Р›РµРІС‹Р№ РїРµСЂРµРІРµСЃ
 			if (node->left->balance_factor() >= 0) {
 				return small_rotate_right(std::move(node));
 			}
@@ -363,7 +363,7 @@ protected:
 			}
 		}
 
-		if (bf < -1) {  // Правый перевес
+		if (bf < -1) {  // РџСЂР°РІС‹Р№ РїРµСЂРµРІРµСЃ
 			if (node->right->balance_factor() <= 0) {
 				return small_rotate_left(std::move(node));
 			}
@@ -374,7 +374,7 @@ protected:
 		return node; 	
 	}
 	
-	// --------- Шаблонные реализации обходов --------- //
+	// --------- РЁР°Р±Р»РѕРЅРЅС‹Рµ СЂРµР°Р»РёР·Р°С†РёРё РѕР±С…РѕРґРѕРІ --------- //
 	template<typename Action>
 	void inorder_impl(Action&& action) const {
 		if (!root) return;
@@ -390,7 +390,7 @@ protected:
 
 			current = stack.top();
 			stack.pop();
-			action(current->key);  // Вызываем action
+			action(current->key);  // Р’С‹Р·С‹РІР°РµРј action
 
 			current = current->right.get();
 		}
@@ -417,7 +417,7 @@ protected:
 	void postorder_impl(Action&& action) const {
 		if (!root) return;
 
-		// Два стека
+		// Р”РІР° СЃС‚РµРєР°
 		std::stack<const Node*> stack1, stack2;
 		stack1.push(root.get());
 
@@ -445,7 +445,7 @@ protected:
 
 		while (!current_lvl.empty()) {
 			std::vector<const Node*> next_lvl;
-			next_lvl.reserve(current_lvl.size() * 2);  // Оптимизация
+			next_lvl.reserve(current_lvl.size() * 2);  // РћРїС‚РёРјРёР·Р°С†РёСЏ
 
 			for (const Node* node : current_lvl) {
 				action(node->key);
@@ -458,14 +458,14 @@ protected:
 		}
 	}
 
-	//-------------- Общие служебные функции ---------//
+	//-------------- РћР±С‰РёРµ СЃР»СѓР¶РµР±РЅС‹Рµ С„СѓРЅРєС†РёРё ---------//
 	
-	//служебная функция копирования дерева (рекурсивная)
+	//СЃР»СѓР¶РµР±РЅР°СЏ С„СѓРЅРєС†РёСЏ РєРѕРїРёСЂРѕРІР°РЅРёСЏ РґРµСЂРµРІР° (СЂРµРєСѓСЂСЃРёРІРЅР°СЏ)
 	static std::unique_ptr<Node> clone(const Node* source) {
 		if (!source) return nullptr;
 
 		auto new_node = std::make_unique<Node>(source->key);
-		new_node->height = source->height;  // копируем высоту
+		new_node->height = source->height;  // РєРѕРїРёСЂСѓРµРј РІС‹СЃРѕС‚Сѓ
 
 		new_node->left = clone(source->left.get());
 		new_node->right = clone(source->right.get());
@@ -473,7 +473,7 @@ protected:
 		return new_node;
 	}
 
-	//служебная функция рекурсивной вставки
+	//СЃР»СѓР¶РµР±РЅР°СЏ С„СѓРЅРєС†РёСЏ СЂРµРєСѓСЂСЃРёРІРЅРѕР№ РІСЃС‚Р°РІРєРё
 	std::unique_ptr<Node> insert_impl(std::unique_ptr<Node> node, const T& key,
 		bool& height_changed) {
 		if (!node) {
@@ -490,32 +490,32 @@ protected:
 			node->right = insert_impl(std::move(node->right), key, child_height_changed);
 		}
 		else {
-			height_changed = false;  // Дубликат
+			height_changed = false;  // Р”СѓР±Р»РёРєР°С‚
 			return node;
 		}
 
 		if (!child_height_changed) {
-			// Высота поддерева не изменилась - пропускаем балансировку
+			// Р’С‹СЃРѕС‚Р° РїРѕРґРґРµСЂРµРІР° РЅРµ РёР·РјРµРЅРёР»Р°СЃСЊ - РїСЂРѕРїСѓСЃРєР°РµРј Р±Р°Р»Р°РЅСЃРёСЂРѕРІРєСѓ
 			height_changed = false;
 			return node;
 		}
 
-		// Сохраняем старую высоту
+		// РЎРѕС…СЂР°РЅСЏРµРј СЃС‚Р°СЂСѓСЋ РІС‹СЃРѕС‚Сѓ
 		int old_height = node->height;
 		node->upd_height();
 
 		if (node->height == old_height) {
-			// Высота не изменилась
+			// Р’С‹СЃРѕС‚Р° РЅРµ РёР·РјРµРЅРёР»Р°СЃСЊ
 			height_changed = false;
 			return node;
 		}
 
-		// Высота изменилась - балансируем
+		// Р’С‹СЃРѕС‚Р° РёР·РјРµРЅРёР»Р°СЃСЊ - Р±Р°Р»Р°РЅСЃРёСЂСѓРµРј
 		height_changed = true;
 		return balance(std::move(node)); 
 	}
-	//--------- рекурсивное удаление
-	// Находим узел с минимальным ключом в поддереве
+	//--------- СЂРµРєСѓСЂСЃРёРІРЅРѕРµ СѓРґР°Р»РµРЅРёРµ
+	// РќР°С…РѕРґРёРј СѓР·РµР» СЃ РјРёРЅРёРјР°Р»СЊРЅС‹Рј РєР»СЋС‡РѕРј РІ РїРѕРґРґРµСЂРµРІРµ
 	static Node* find_min(Node* node) {
 		while (node && node->left) {
 			node = node->left.get();
@@ -523,62 +523,62 @@ protected:
 		return node;
 	}
 
-	// Находим узел с максимальным ключом в поддереве  
+	// РќР°С…РѕРґРёРј СѓР·РµР» СЃ РјР°РєСЃРёРјР°Р»СЊРЅС‹Рј РєР»СЋС‡РѕРј РІ РїРѕРґРґРµСЂРµРІРµ  
 	static Node* find_max(Node* node) {
 		while (node && node->right) {
 			node = node->right.get();
 		}
 		return node;
 	}
-	 //служебная функция рекурсивного удаления
+	 //СЃР»СѓР¶РµР±РЅР°СЏ С„СѓРЅРєС†РёСЏ СЂРµРєСѓСЂСЃРёРІРЅРѕРіРѕ СѓРґР°Р»РµРЅРёСЏ
 	std::unique_ptr<Node> remove_impl(std::unique_ptr<Node> node, const T& key, bool& height_changed) {
 		if (!node) {
 			height_changed = false;
-			return nullptr;  // Ключ не найден
+			return nullptr;  // РљР»СЋС‡ РЅРµ РЅР°Р№РґРµРЅ
 		}
 
 		bool child_height_changed = false;
 
 		if (key < node->key) {
-			// Ищем в левом поддереве
+			// РС‰РµРј РІ Р»РµРІРѕРј РїРѕРґРґРµСЂРµРІРµ
 			node->left = remove_impl(std::move(node->left), key, child_height_changed);
 		}
 		else if (key > node->key) {
-			// Ищем в правом поддереве
+			// РС‰РµРј РІ РїСЂР°РІРѕРј РїРѕРґРґРµСЂРµРІРµ
 			node->right = remove_impl(std::move(node->right), key, child_height_changed);
 		}
 		else {
-			// Нашли узел для удаления
-			height_changed = true;  // Удаление всегда может изменить высоту
+			// РќР°С€Р»Рё СѓР·РµР» РґР»СЏ СѓРґР°Р»РµРЅРёСЏ
+			height_changed = true;  // РЈРґР°Р»РµРЅРёРµ РІСЃРµРіРґР° РјРѕР¶РµС‚ РёР·РјРµРЅРёС‚СЊ РІС‹СЃРѕС‚Сѓ
 
-			//Узел - лист (нет детей)
+			//РЈР·РµР» - Р»РёСЃС‚ (РЅРµС‚ РґРµС‚РµР№)
 			if (!node->left && !node->right) {
-				--node_count;  // Уменьшаем счетчик
+				--node_count;  // РЈРјРµРЅСЊС€Р°РµРј СЃС‡РµС‚С‡РёРє
 				return nullptr;
 			}
 
-			//Узел имеет только одного ребенка
+			//РЈР·РµР» РёРјРµРµС‚ С‚РѕР»СЊРєРѕ РѕРґРЅРѕРіРѕ СЂРµР±РµРЅРєР°
 			if (!node->left) {
-				--node_count;  // Уменьшаем счетчик
-				return std::move(node->right);  // Правый ребенок становится на место узла
+				--node_count;  // РЈРјРµРЅСЊС€Р°РµРј СЃС‡РµС‚С‡РёРє
+				return std::move(node->right);  // РџСЂР°РІС‹Р№ СЂРµР±РµРЅРѕРє СЃС‚Р°РЅРѕРІРёС‚СЃСЏ РЅР° РјРµСЃС‚Рѕ СѓР·Р»Р°
 			}
 			if (!node->right) {
-				--node_count;  // Уменьшаем счетчик
-				return std::move(node->left);   // Левый ребенок становится на место узла
+				--node_count;  // РЈРјРµРЅСЊС€Р°РµРј СЃС‡РµС‚С‡РёРє
+				return std::move(node->left);   // Р›РµРІС‹Р№ СЂРµР±РµРЅРѕРє СЃС‚Р°РЅРѕРІРёС‚СЃСЏ РЅР° РјРµСЃС‚Рѕ СѓР·Р»Р°
 			}
 
-			//Узел имеет двух детей
-			// Находим минимальный узел в правом поддереве (ну так захотелось, можно максимальный в правом)
+			//РЈР·РµР» РёРјРµРµС‚ РґРІСѓС… РґРµС‚РµР№
+			// РќР°С…РѕРґРёРј РјРёРЅРёРјР°Р»СЊРЅС‹Р№ СѓР·РµР» РІ РїСЂР°РІРѕРј РїРѕРґРґРµСЂРµРІРµ (РЅСѓ С‚Р°Рє Р·Р°С…РѕС‚РµР»РѕСЃСЊ, РјРѕР¶РЅРѕ РјР°РєСЃРёРјР°Р»СЊРЅС‹Р№ РІ РїСЂР°РІРѕРј)
 			Node* successor = find_min(node->right.get());
 
-			// Копируем значение преемника в текущий узел
+			// РљРѕРїРёСЂСѓРµРј Р·РЅР°С‡РµРЅРёРµ РїСЂРµРµРјРЅРёРєР° РІ С‚РµРєСѓС‰РёР№ СѓР·РµР»
 			node->key = successor->key;
 
-			// Рекурсивно удаляем преемника
+			// Р РµРєСѓСЂСЃРёРІРЅРѕ СѓРґР°Р»СЏРµРј РїСЂРµРµРјРЅРёРєР°
 			node->right = remove_impl(std::move(node->right), successor->key, child_height_changed);
 		}
 
-		// После удаления проверяем балансировку
+		// РџРѕСЃР»Рµ СѓРґР°Р»РµРЅРёСЏ РїСЂРѕРІРµСЂСЏРµРј Р±Р°Р»Р°РЅСЃРёСЂРѕРІРєСѓ
 		if (child_height_changed) {
 			int old_height = node->height;
 			node->upd_height();

@@ -1,4 +1,4 @@
-#pragma once
+п»ї#pragma once
 #include <concepts>
 #include <vector>
 #include <functional>
@@ -9,32 +9,32 @@ class ITree {
 public:
     virtual ~ITree() = default;
 
-    // Основные операции
+    // РћСЃРЅРѕРІРЅС‹Рµ РѕРїРµСЂР°С†РёРё
     virtual void insert(const T& key) = 0;
     virtual bool contains(const T& key) const = 0;
     virtual void remove(const T& key) = 0;
     virtual void clear() = 0;
 
-    // Состояние
+    // РЎРѕСЃС‚РѕСЏРЅРёРµ
     virtual bool empty() const = 0;
     virtual size_t size() const = 0;    
 
-    // Обходы
+    // РћР±С…РѕРґС‹
     virtual std::vector<T> inorder() const = 0;
     virtual std::vector<T> preorder() const = 0;
     virtual std::vector<T> postorder() const = 0;
     virtual std::vector<T> level_order() const = 0;
 
-    // Visitor методы
+    // Visitor РјРµС‚РѕРґС‹
     virtual void visit_inorder(std::function<void(const T&)> visitor) const = 0;
     virtual void visit_preorder(std::function<void(const T&)> visitor) const = 0;
     virtual void visit_postorder(std::function<void(const T&)> visitor) const = 0;
     virtual void visit_level_order(std::function<void(const T&)> visitor) const = 0;
 
-    // Характеристики
+    // РҐР°СЂР°РєС‚РµСЂРёСЃС‚РёРєРё
     virtual int height() const = 0;   
 
-    // Визуализация
+    // Р’РёР·СѓР°Р»РёР·Р°С†РёСЏ
     virtual void print(std::ostream& os) const = 0;
 };
 

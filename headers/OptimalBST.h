@@ -38,26 +38,38 @@ public:
     //--------- Конструкторы -------//
 
     // Основной конструктор для построения оптимального дерева
-    OptimalBST(const std::vector<T>& sorted_keys,
-        const std::vector<double>& key_probs,
-        const std::vector<double>& gap_probs = {}) {
+    OptimalBST(const std::vector<T>& keys,
+        const std::vector<double>& key_probs) {
 
-        // Проверки корректности входных данных
-        if (sorted_keys.empty()) return;
+        if (keys.empty()) return;
 
-        if (sorted_keys.size() != key_probs.size()) {
-            throw std::invalid_argument("Keys and probabilities must have same size");
+        if (keys.size() != key_probs.size()) {
+            throw std::invalid_argument(
+                "Keys and probabilities must have same size");
         }
 
-        // Проверка сортированности
-        for (size_t i = 1; i < sorted_keys.size(); ++i) {
-            if (sorted_keys[i - 1] >= sorted_keys[i]) {
-                throw std::invalid_argument("Keys must be sorted in ascending order");
-            }
+        // Копируем данные (чтобы не менять входные параметры)
+        std::vector<T> sorted_keys = keys;
+        std::vector<double> sorted_probs = key_probs;
+
+        // 1. Сортируем если нужно
+        if (!is_sorted(sorted_keys)) {
+            sort_keys_with_probs(sorted_keys, sorted_probs);
         }
 
-        // 1. Вызываем алгоритм ДП
-        build_optimal_bst(sorted_keys, key_probs, gap_probs);
+        // 2. Нормализуем вероятности
+        normalize_probabilities(sorted_probs);
+        
+        std::cout << "\nВероятности после нормализации:" << std::endl;
+        for (size_t i = 0; i < sorted_probs.size(); ++i) {
+            std::cout << "p[" << i << "] = " << sorted_probs[i] << std::endl;
+        }
+
+        // 3. Создаем q = нули (упрощенный вариант)
+        std::vector<double> q(sorted_keys.size() + 1, 0.0);
+
+        // 4. Строим дерево
+        build_optimal_bst(sorted_keys, sorted_probs, q);
     }
 
     // Конструктор копирования
@@ -241,6 +253,10 @@ public:
         return compute_expected_cost(root.get(), 1);
     }
 
+    double get_expected_cost() const {        
+        return expected_cost_;
+    }
+
     //--------- Печать -------//
 
     void print(std::ostream& os = std::cout) const override {
@@ -281,40 +297,154 @@ public:
     }
 
 protected:
+    //вспомогательные функции для построения дерева    
+    
+    // Функция для сортировки ключей с вероятностями
+    static void sort_keys_with_probs(std::vector<T>& keys,
+		std::vector<double>& probs) {
+		
+        std::vector<std::pair<T, double>> pairs;
+		pairs.reserve(keys.size());
+        
+        for (size_t i = 0; i < keys.size(); ++i) {
+            pairs.emplace_back(keys[i], probs[i]);
+		}
+
+		std::sort(pairs.begin(), pairs.end());
+
+	    for (size_t i = 0; i < pairs.size(); ++i) {
+		    keys[i] = pairs[i].first;
+			probs[i] = pairs[i].second;
+		}
+	}
+
+    // Функция для проверки, отсортированы ли ключи
+    static bool is_sorted(const std::vector<T>& keys) {
+        for (size_t i = 1; i < keys.size(); ++i) {
+            if (keys[i] < keys[i - 1]) {  // Используем < для strict ordering
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Функция для нормализации вероятностей
+    static void normalize_probabilities(std::vector<double>& probs) {
+        double sum = std::accumulate(probs.begin(), probs.end(), 0.0);
+
+        if (std::abs(sum - 1.0) > 1e-9) {
+            // Если сумма близка к 0, делаем равномерное распределение
+            if (sum < 1e-9) {
+                std::fill(probs.begin(), probs.end(), 1.0 / probs.size());
+            }
+            else {
+                for (auto& prob : probs) {
+                    prob /= sum;
+                }
+            }
+        }
+    }
+
+//функция построения дерева    
     void build_optimal_bst(const std::vector<T>& keys,
         const std::vector<double>& p,
-        const std::vector<double>& q = {}) {
-        size_t n = keys.size();
+        const std::vector<double>& q) {
 
+        size_t n = keys.size();
         if (n == 0) {
             root = nullptr;
             node_count = 0;
+            expected_cost_ = 0.0;
             return;
         }
 
-        // ВРЕМЕННАЯ ЗАГЛУШКА: строим просто сбалансированное дерево
-        // ЗАМЕНИТЕ на реальный алгоритм ДП позже
-        root = build_balanced(keys, 0, n - 1);
+        // Проверка размеров (для безопасности)
+        if (p.size() != n || q.size() != n + 1) {
+            throw std::invalid_argument("Invalid probability arrays size");
+        }
+
+#ifdef DEBUG // Проверка сортированности (assert для отладки)
+        assert(is_sorted(keys) && "Keys must be sorted in build_optimal_bst");
+#endif // DEBUG
+            
+        // Таблицы ДП
+        std::vector<std::vector<double>> e(n + 2,
+            std::vector<double>(n + 1, 0.0));
+        std::vector<std::vector<double>> w(n + 2,
+            std::vector<double>(n + 1, 0.0));
+        std::vector<std::vector<int>> root_table(n + 1,
+            std::vector<int>(n + 1, 0));
+
+        constexpr double INF = std::numeric_limits<double>::max();
+
+        // 1. Инициализация (q[i-1] = 0 в упрощенном варианте)
+        for (int i = 1; i <= n + 1; ++i) {
+            e[i][i - 1] = q[i - 1];
+            w[i][i - 1] = q[i - 1];
+        }
+
+        // 2. Основной цикл ДП
+        for (int length = 1; length <= n; ++length) {
+            for (int i = 1; i <= n - length + 1; ++i) {
+                int j = i + length - 1;
+
+                // w[i][j] = сумма вероятностей от i до j
+                w[i][j] = w[i][j - 1] + p[j - 1]; // p[j-1] т.к. p 0-based
+
+                // Границы поиска корня с оптимизацией Кнута
+                int left = (i <= j - 1) ? root_table[i][j - 1] : i;
+                int right = (i + 1 <= j) ? root_table[i + 1][j] : j;
+
+                // Ищем оптимальный корень
+                e[i][j] = INF;
+                for (int r = left; r <= right; ++r) {
+                    double cost = e[i][r - 1] + e[r + 1][j] + w[i][j];
+                    if (cost < e[i][j]) {
+                        e[i][j] = cost;
+                        root_table[i][j] = r;
+                    }
+                }
+            }
+        }
+
+        std::cout << "\nТаблица root:" << std::endl;
+        for (int i = 1; i <= n; ++i) {
+            for (int j = 1; j <= n; ++j) {
+                if (i <= j) {
+                    std::cout << root_table[i][j] << " ";
+                }
+                else {
+                    std::cout << "  ";
+                }
+            }
+            std::cout << std::endl;
+        }
+
+        // 3. Сохраняем минимальную ожидаемую стоимость
+        expected_cost_ = e[1][n];
+
+        // 4. Строим дерево
+        root = build_tree_from_roots(keys, root_table, 1, n);
         node_count = n;
     }
 
-    std::unique_ptr<Node> build_balanced(const std::vector<T>& keys, int start, int end) {
-        if (start > end) return nullptr;
+    //вспомогательная рекурсивная функция построения поддерева
+    std::unique_ptr<Node> build_tree_from_roots(
+        const std::vector<T>& keys,
+        const std::vector<std::vector<int>>& root_table,
+        int i, int j) {
 
-        int mid = start + (end - start) / 2;
-        auto node = std::make_unique<Node>(keys[mid]);
-        node->left = build_balanced(keys, start, mid - 1);
-        node->right = build_balanced(keys, mid + 1, end);
+        if (i > j) return nullptr;
+
+        int root_idx = root_table[i][j];  // 1-based индекс в keys
+        // keys 0-based, поэтому keys[root_idx-1]
+        auto node = std::make_unique<Node>(keys[root_idx - 1]);
+
+        // Рекурсивно строим левое и правое поддеревья
+        node->left = build_tree_from_roots(keys, root_table, i, root_idx - 1);
+        node->right = build_tree_from_roots(keys, root_table, root_idx + 1, j);
+
         return node;
-    }
-
-    double compute_expected_cost(const Node* node, int depth) const {
-        if (!node) return 0.0;
-
-        // Заглушка: считаем просто сумму глубин
-        return depth +
-            compute_expected_cost(node->left.get(), depth + 1) +
-            compute_expected_cost(node->right.get(), depth + 1);
     }
 
 	// --------- Шаблонные реализации обходов --------- //
@@ -442,5 +572,6 @@ protected:
 protected:
 	std::unique_ptr<Node> root = nullptr;
 	size_t node_count = 0;
+    double expected_cost_ = 0.0;
 };
 

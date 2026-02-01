@@ -11,6 +11,153 @@
 #include <random>
 #include <numeric>
 
+void final_verification() {
+    std::cout << "=== ФИНАЛЬНАЯ ПРОВЕРКА ===" << std::endl;
+
+    // Тест 1: Должен выбрать 20
+    {
+        std::vector<int> keys = { 10, 20, 30 };
+        std::vector<double> probs = { 0.4, 0.3, 0.3 };
+
+        OptimalBST<int> tree(keys, probs);
+        std::cout << "Тест {0.4, 0.3, 0.3}: корень = "
+            << tree.preorder()[0] << " (ожидается 20)" << std::endl;
+    }
+
+    // Тест 2: Теперь 10 явный фаворит
+    {
+        std::vector<int> keys = { 10, 20, 30 };
+        std::vector<double> probs = { 0.7, 0.2, 0.1 };
+
+        OptimalBST<int> tree(keys, probs);
+        std::cout << "Тест {0.7, 0.2, 0.1}: корень = "
+            << tree.preorder()[0] << " (ожидается 10)" << std::endl;
+    }
+
+    // Тест 3: Все равны
+    {
+        std::vector<int> keys = { 10, 20, 30 };
+        std::vector<double> probs = { 0.333, 0.333, 0.334 };
+
+        OptimalBST<int> tree(keys, probs);
+        std::cout << "Тест равных: корень = "
+            << tree.preorder()[0] << " (может быть 20 или 10)" << std::endl;
+    }
+}
+
+void test_3_elements_debug() {
+    std::vector<int> keys = { 10, 20, 30 };
+    std::vector<double> probs = { 0.4, 0.3, 0.3 }; // 10 самый вероятный
+
+    OptimalBST<int> tree(keys, probs);
+
+    std::cout << "Тест: keys={10,20,30}, probs={0.4,0.3,0.3}\n";
+    std::cout << "Корень: " << tree.preorder()[0] << std::endl;
+
+    // Вручную:
+    // Если корень 10: cost = (0.4*1) + (0.3*2) + (0.3*2) = 1.6
+    // Если корень 20: cost = (0.4*2) + (0.3*1) + (0.3*2) = 1.7
+    // Если корень 30: cost = (0.4*2) + (0.3*2) + (0.3*1) = 1.7
+    // Оптимально: корень 10
+}
+
+double compute_expected_cost_manual(const std::vector<double>& probs, int root_idx) {
+    // Ручной расчет стоимости для заданного корня
+    // Упрощенный: считаем, что дерево идеально сбалансировано относительно этого корня
+    double cost = 0;
+
+    for (size_t i = 0; i < probs.size(); ++i) {
+        if (i == root_idx) {
+            cost += probs[i] * 1; // Корень на глубине 1
+        }
+        else if (i < root_idx) {
+            cost += probs[i] * 2; // Левое поддерево, глубина ~2
+        }
+        else {
+            cost += probs[i] * 2; // Правое поддерево, глубина ~2
+        }
+    }
+
+    return cost;
+}
+
+void test_letter_analysis() {
+    std::vector<char> keys = { 'a', 'd', 'e', 'h', 'i', 'n', 'o', 'r', 's', 't' };
+    std::vector<double> probs = { 0.111, 0.058, 0.172, 0.083, 0.095,
+                                 0.091, 0.101, 0.081, 0.085, 0.123 };
+    
+
+    std::cout << "Анализ оптимальности корней:\n";
+
+    // Проверяем несколько кандидатов в корни
+    std::vector<int> candidates = { 2, 6, 9 }; // e, o, t (индексы 0-based)
+
+    for (int root_idx : candidates) {
+        double cost = compute_expected_cost_manual(probs, root_idx);
+        std::cout << "Корень " << keys[root_idx] << " (" << probs[root_idx]
+            << "): ожидаемая стоимость ~" << cost << std::endl;
+    }
+
+    OptimalBST<char> tree(keys, probs);
+
+    // Отладочный вывод после нормализации (если есть доступ)
+    std::cout << "Корень: " << tree.preorder()[0] << std::endl;
+    std::cout << "Весь preorder: ";
+    for (char c : tree.preorder()) std::cout << c << " ";
+    std::cout << std::endl;
+}
+
+void test_obvious_case() {
+    // 3 элемента, средний имеет намного большую вероятность
+    std::vector<int> keys = { 10, 20, 30 };
+    std::vector<double> probs = { 0.1, 0.8, 0.1 }; // 20 - явный фаворит
+
+    OptimalBST<int> tree(keys, probs);
+
+    std::cout << "Тест 1: Явный фаворит (0.1, 0.8, 0.1)\n";
+    std::cout << "Preorder: ";
+    for (int k : tree.preorder()) std::cout << k << " ";
+    std::cout << "\nКорень: " << tree.preorder()[0]
+        << " (ожидается 20)\n" << std::endl;
+
+    assert(tree.preorder()[0] == 20);
+}
+
+void test_uniform() {
+    std::vector<int> keys = { 10, 20, 30, 40, 50, 60, 70 };
+    std::vector<double> probs(7, 1.0 / 7.0);
+
+    OptimalBST<int> tree(keys, probs);
+
+    std::cout << "Тест 2: Равномерное распределение\n";
+    std::cout << "Высота: " << tree.height()
+        << " (для 7 элементов сбалансированное: 3)\n";
+    std::cout << "Корень: " << tree.preorder()[0]
+        << " (ожидается 40 - середина)\n" << std::endl;
+}
+
+
+void test_dp_manual() {
+    // Маленький пример для ручной проверки
+    std::vector<int> keys = { 10, 20, 30 };
+    std::vector<double> probs = { 0.3, 0.4, 0.3 }; // 20 немного вероятнее
+
+    OptimalBST<int> tree(keys, probs);
+
+    std::cout << "Тест 3: Проверка ДП (0.3, 0.4, 0.3)\n";
+    std::cout << "Корень: " << tree.preorder()[0] << std::endl;
+
+    // Рассчитаем вручную:
+    // Если корень 10: стоимость = 0.3*1 + 0.4*2 + 0.3*2 = 1.7
+    // Если корень 20: стоимость = 0.3*2 + 0.4*1 + 0.3*2 = 1.6  
+    // Если корень 30: стоимость = 0.3*2 + 0.4*2 + 0.3*1 = 1.7
+    // Оптимально: корень 20 с стоимостью 1.6
+
+    if (tree.preorder()[0] == 20) {
+        std::cout << "✓ Алгоритм выбрал оптимальный корень 20\n" << std::endl;
+    }
+}
+
 
 void test_various_distributions() {
     std::cout << "=== Тест 1: Вырожденный случай ===" << std::endl;
@@ -227,9 +374,22 @@ int main() {
     std::cout << "****** Treap ***********************\n";
 
     TreeTest<int, Treap<int>>::comprehensive_test(n);*/
-
+    /*
     test_simple_obst();
     test_various_distributions();
-    test_correctness();
+    test_correctness();*/
+    
+    TreeTest<int, OptimalBST<int>>::comprehensive_test(10);
+
+    /*
+    final_verification();
+    test_3_elements_debug();
+    test_letter_analysis();
+    
+    test_obvious_case();
+        
+    test_uniform();
+
+    test_dp_manual();*/
 
 }

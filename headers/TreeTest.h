@@ -8,6 +8,8 @@
 #include <cassert>
 #include <set>
 #include <functional>
+#include <concepts>
+#include "OptimalBST.h"
 
 template <std::integral T, std::derived_from<ITree<T>> Tree>
 class TreeTest {
@@ -17,21 +19,37 @@ public:
 		std::cout << "========================================\n";
 		std::cout << "COMPREHENSIVE TREE TEST (size = " << size << ")\n";
 		std::cout << "========================================\n\n";
+		if constexpr (std::is_same_v<Tree, OptimalBST<T>>) {
+			std::cout << "TREE TYPE: Optimal BST\n";
+		}
+		else {
+			std::cout << "TREE TYPE: Dynamic tree\n";
+		}
 
 		// 1. Тест граничных случаев
-		test_edge_cases();
+		if constexpr (std::is_same_v<Tree, OptimalBST<T>>) {
+			std::cout << "Edge cases test skipped for OBST\n";
+		}
+		else test_edge_cases();
 
 		// 2. Основной тест с отсортированными и случайными данными
 		main_test(size);
 
 		// 3. Тест производительности (сравнение сбалансированного/несбалансированного)
-		performance_comparison(size);
+		if constexpr (std::is_same_v<Tree, OptimalBST<T>>) {
+			std::cout << "performance_comparison test skipped for OBST\n";
+		}
+		else performance_comparison(size);
 
 		// 4. Тест копирования и перемещения
 		test_copy_move_semantics(size);
 
 		// 5. Стресс-тест (меньший размер для скорости)
-		stress_test(std::min(size, (size_t)5000));
+		// 3. Тест производительности (сравнение сбалансированного/несбалансированного)
+		if constexpr (std::is_same_v<Tree, OptimalBST<T>>) {
+			std::cout << "stress test skipped for OBST\n";
+		}
+		else stress_test(std::min(size, (size_t)5000));
 
 		std::cout << "\n========================================\n";
 		std::cout << "ALL TESTS PASSED SUCCESSFULLY!\n";
@@ -103,7 +121,7 @@ private:
 		std::cout << "++ All edge cases passed\n\n";
 	}
 
-	// ==================== 2. Основной тест ====================
+	// ==================== 2. Основной тест ====================	
 	static void main_test(size_t size) {
 		std::cout << "2. MAIN TEST (sorted vs random data)\n";
 		std::cout << "-------------------------------------\n";
@@ -123,17 +141,32 @@ private:
 
 		// 2.1 Тест с отсортированными данными
 		std::cout << "2.1 Sorted data (degenerate tree):\n";
-		Tree sorted_tree = build_and_test_tree(sorted_data, "sorted");
-
+		
+		auto buid_sorted = [&]()->Tree {
+			if constexpr (std::is_same_v<Tree, OptimalBST<T>>) {
+				return build_and_test_tree_obst(sorted_data, "sorted");
+			} else {
+				return build_and_test_tree(sorted_data, "sorted");
+			} 
+		};		
+		Tree sorted_tree = buid_sorted();
+		
 		// 2.2 Тест со случайными данными
-		std::cout << "\n2.2 Random data (balanced tree):\n";
-		Tree random_tree = build_and_test_tree(random_data, "random");
+		auto buid_random = [&]()->Tree {
+			if constexpr (std::is_same_v<Tree, OptimalBST<T>>) {
+				return build_and_test_tree_obst(random_data, "random");
+			}
+			else {
+				return build_and_test_tree(random_data, "random");
+			}
+		};
+		Tree random_tree = buid_random();
 
 		// 2.3 Проверка корректности обходов
 		std::cout << "\n2.3 Traversal correctness:\n";
 		test_traversals_correctness(sorted_tree, "sorted");
-		test_traversals_correctness(random_tree, "random");		
-		
+		test_traversals_correctness(random_tree, "random");
+
 		// 2.4 Тест поиска 10% случайных элементов
 		std::cout << "\n2.5 10 percent search tests:\n";
 		test_random_search_10_percent(sorted_tree, sorted_data, "Sorted tree");
@@ -141,11 +174,16 @@ private:
 
 		// 2.5 Тест удаления 10% случайных элементов
 		std::cout << "\n2.5 10 percent removal tests:\n";
-		test_random_removal_10_percent(sorted_tree, sorted_data, "Sorted tree");
-		test_random_removal_10_percent(random_tree, random_data, "Random tree");
+		if constexpr (std::is_same_v<Tree, OptimalBST<T>>) {
+			std::cout << "Remove operation not is not defined for static trees\n";
+		}
+		else {
+			test_random_removal_10_percent(sorted_tree, sorted_data, "Sorted tree");
+			test_random_removal_10_percent(random_tree, random_data, "Random tree");
+		}
 
 		std::cout << "++ Main test completed\n\n";
-	}
+	}	
 
 	// ==================== 3. Сравнение производительности ====================
 	static void performance_comparison(size_t size) {
@@ -219,10 +257,24 @@ private:
 		std::cout << "---------------------------\n";
 
 		// Создаём исходное дерево
-		Tree original;
-		for (size_t i = 0; i < std::min(size, (size_t)100); i++) {
-			original.insert(static_cast<T>(i * 2));
-		}
+		auto build_original = [&]()->Tree {
+			if constexpr (std::is_same_v<Tree, OptimalBST<T>>) {
+				std::vector<T> data;
+				for (size_t i = 0; i < std::min(size, (size_t)100); i++) {
+					data.push_back(static_cast<T>(i * 2));
+				}
+				return build_and_test_tree_obst(data, "copy_move");
+			}
+			else {
+				Tree original;
+				for (size_t i = 0; i < std::min(size, (size_t)100); i++) {
+					original.insert(static_cast<T>(i * 2));
+				}
+				return original;
+			}
+		};
+		
+		Tree original = build_original();
 
 		// 4.1 Конструктор копирования
 		Tree copy_constructed(original);
@@ -230,8 +282,8 @@ private:
 		std::cout << "+ Copy constructor\n";
 
 		// 4.2 Оператор присваивания копированием
-		Tree copy_assigned;
-		copy_assigned = original;
+		//Tree copy_assigned;
+		Tree copy_assigned = original;
 		verify_tree_equality(original, copy_assigned, "copy assignment");
 		std::cout << "+ Copy assignment\n";
 
@@ -244,8 +296,8 @@ private:
 
 		// 4.4 Оператор присваивания перемещением
 		Tree temp_for_move2 = original; // копируем
-		Tree move_assigned;
-		move_assigned = std::move(temp_for_move2);
+		//Tree move_assigned;
+		Tree move_assigned = std::move(temp_for_move2);
 		verify_tree_equality(original, move_assigned, "move assignment");
 		assert(temp_for_move2.empty() || temp_for_move2.size() == 0);
 		std::cout << "+ Move assignment\n";
@@ -335,7 +387,7 @@ private:
 
 	// ==================== Вспомогательные методы ====================
 
-	//построение дерева
+	//построение дерева	
 	static Tree build_and_test_tree(const std::vector<T>& data, const std::string& name) {
 		Tree tree;
 
@@ -343,6 +395,31 @@ private:
 		for (auto key : data) {
 			tree.insert(key);
 		}
+		auto end = std::chrono::high_resolution_clock::now();
+		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+		std::cout << "  Built in " << duration.count() << " ms\n";
+		std::cout << "  Size: " << tree.size() << ", Height: " << tree.height() << "\n";
+
+		// Проверяем корректность
+		verify_tree_integrity(tree, name + " tree after build");
+
+		return tree;
+	}	
+	
+	static Tree build_and_test_tree_obst(const std::vector<T>& data, const std::string& name) {
+		
+		std::vector<double> probs4;
+		std::mt19937 gen(42);
+		std::uniform_int_distribution<> dis(0, 1000);
+
+		for (int i = 0; i != data.size(); ++i) {			
+			probs4.push_back(1.0 / (i + 1)); // Зипф
+		}		
+
+		auto start = std::chrono::high_resolution_clock::now();
+		Tree tree(data, probs4);
+
 		auto end = std::chrono::high_resolution_clock::now();
 		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 

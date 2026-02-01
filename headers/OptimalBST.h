@@ -59,11 +59,13 @@ public:
 
         // 2. Нормализуем вероятности
         normalize_probabilities(sorted_probs);
-        
+
+#ifdef DEBUG
         std::cout << "\nВероятности после нормализации:" << std::endl;
         for (size_t i = 0; i < sorted_probs.size(); ++i) {
             std::cout << "p[" << i << "] = " << sorted_probs[i] << std::endl;
         }
+#endif // DEBUG
 
         // 3. Создаем q = нули (упрощенный вариант)
         std::vector<double> q(sorted_keys.size() + 1, 0.0);
@@ -110,9 +112,10 @@ public:
     //--------- Основные операции -------//
 
     void insert(const T& key) override {
-        // Optimal BST не поддерживает динамическую вставку
-        // Можно либо игнорировать, либо бросать исключение
-        // throw std::runtime_error("OptimalBST doesn't support insert()");
+#ifdef DEBUG
+        std::cerr << "[OptimalBST] Warning: insert() called on static tree. "
+            << "Operation ignored.\n";
+#endif
     }
 
     bool contains(const T& key) const override {
@@ -132,8 +135,10 @@ public:
     }
 
     void remove(const T& key) override {
-        // Optimal BST не поддерживает удаление
-        // throw std::runtime_error("OptimalBST doesn't support remove()");
+#ifdef DEBUG
+        std::cerr << "[OptimalBST] Warning: remove() called on static tree. "
+            << "Operation ignored.\n";
+#endif
     }
 
     void clear() override {
@@ -247,11 +252,6 @@ public:
     }
 
     //--------- Дополнительные методы для OBST ---------//
-
-    double expected_search_cost() const {
-        // Заглушка - нужно будет реализовать с учетом вероятностей
-        return compute_expected_cost(root.get(), 1);
-    }
 
     double get_expected_cost() const {        
         return expected_cost_;
@@ -407,6 +407,10 @@ protected:
             }
         }
 
+        // 3. Сохраняем минимальную ожидаемую стоимость
+        expected_cost_ = e[1][n];
+
+#ifdef DEBUG
         std::cout << "\nТаблица root:" << std::endl;
         for (int i = 1; i <= n; ++i) {
             for (int j = 1; j <= n; ++j) {
@@ -419,9 +423,26 @@ protected:
             }
             std::cout << std::endl;
         }
+        std::cout << "\nПравильные стоимости для разных корней:" << std::endl;
+        for (int r = 1; r <= n; ++r) {
+            // Правильный расчет: стоимость левого + стоимость правого + сумма вероятностей
+            double cost = e[1][r - 1] + e[r + 1][n] + w[1][n];
+            std::cout << "Корень " << r << " (" << keys[r - 1] << "): "
+                << cost << " = " << e[1][r - 1] << " + " << e[r + 1][n]
+                << " + " << w[1][n] << std::endl;
+        }
 
-        // 3. Сохраняем минимальную ожидаемую стоимость
-        expected_cost_ = e[1][n];
+        // таблицу w
+        std::cout << "\nТаблица w[i][j] (суммы вероятностей):" << std::endl;
+        for (int i = 1; i <= n; ++i) {
+            for (int j = 1; j <= n; ++j) {
+                if (i <= j) {
+                    std::cout << w[i][j] << " ";
+                }
+            }
+            std::cout << std::endl;
+        }
+#endif //DEBUG
 
         // 4. Строим дерево
         root = build_tree_from_roots(keys, root_table, 1, n);

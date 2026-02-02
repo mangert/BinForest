@@ -4,6 +4,7 @@
 #include "AVLTree.h"
 #include "Treap.h"
 #include "OptimalBST.h"
+#include "RandomizedBST.h"
 #include <cassert>
 #include <set>
 
@@ -379,7 +380,7 @@ int main() {
     test_various_distributions();
     test_correctness();*/
     
-    TreeTest<int, OptimalBST<int>>::comprehensive_test(10);
+    //TreeTest<int, OptimalBST<int>>::comprehensive_test(10000);
 
     /*
     final_verification();
@@ -391,5 +392,13 @@ int main() {
     test_uniform();
 
     test_dp_manual();*/
+
+    int n = 10000; //количество элементов для тестов
+
+    std::cout << "\nТестирование функционала деревьев\n\n";
+    std::cout << "-------- Часть 1: n= " << n << "\n";
+    std::cout << "****** BSTree **********************\n";
+
+    TreeTest<int, RandomizedBSTree<int>>::comprehensive_test(n);
 
 }

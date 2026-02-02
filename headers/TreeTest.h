@@ -152,6 +152,7 @@ private:
 		Tree sorted_tree = buid_sorted();
 		
 		// 2.2 Тест со случайными данными
+		std::cout << "2.1 Random data:\n";
 		auto buid_random = [&]()->Tree {
 			if constexpr (std::is_same_v<Tree, OptimalBST<T>>) {
 				return build_and_test_tree_obst(random_data, "random");

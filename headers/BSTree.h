@@ -75,36 +75,9 @@ public:
 	
 	//--------- Основные операции -------//
 	//вставка (итеративно)
-	void insert(const T& key) override {
-
-		if (!root) {
-			root = std::make_unique<Node>(key);
-			++node_count;
-			return;
-		}
-
-		Node* current = root.get();
-		while (true) {
-			if (key < current->key) {
-				if (!current->left) {
-					current->left = std::make_unique<Node>(key);
-					++node_count;
-					return;
-				}
-				current = current->left.get();
-			}
-			else if (key > current->key) {
-				if (!current->right) {
-					current->right = std::make_unique<Node>(key);
-					++node_count;
-					return;
-				}
-				current = current->right.get();
-			}
-			else {	
-				return;
-			}
-		}
+	void insert(const T& key) override {		
+		
+		if (insert_impl(key)) ++node_count;		
 	};
 	
 	//поиск элемента
@@ -435,6 +408,35 @@ protected:
 		}
 
 		return new_root;
+	}
+
+	//служебная функция для добавления узла (итеративная)
+	bool insert_impl(const T& key) {
+		if (!root) {
+			root = std::make_unique<Node>(key);			
+			return true;
+		}
+
+		Node* current = root.get();
+		while (true) {
+			if (key < current->key) {
+				if (!current->left) {
+					current->left = std::make_unique<Node>(key);					
+					return true;
+				}
+				current = current->left.get();
+			}
+			else if (key > current->key) {
+				if (!current->right) {
+					current->right = std::make_unique<Node>(key);					
+					return true;
+				}
+				current = current->right.get();
+			}
+			else {
+				return false;
+			}
+		}
 	}
 
 	//служебная функция удаления узла

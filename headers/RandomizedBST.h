@@ -1,30 +1,45 @@
-#pragma once
-#include "BSTree.h"  // Предполагается, что у вас класс называется BSTree, а не BST
+п»ї#pragma once
+#include "BSTree.h"  // РџСЂРµРґРїРѕР»Р°РіР°РµС‚СЃСЏ, С‡С‚Рѕ Сѓ РІР°СЃ РєР»Р°СЃСЃ РЅР°Р·С‹РІР°РµС‚СЃСЏ BSTree, Р° РЅРµ BST
 #include <random>
 #include <memory>
+#include <concepts>
 
-template <std::totally_ordered T>
+// РљРѕРЅС†РµРїС‚ РґР»СЏ РїСЂРѕРІРµСЂРєРё РїР°СЂР°РјРµС‚СЂР° РІРµСЂРѕСЏС‚РЅРѕСЃС‚Рё
+template<double P>
+concept ValidProbability = (P >= 0.0 && P <= 1.0);
+
+enum class ProbabilityStrategy { //СЃС‚СЂР°С‚РµРіРёРё РґР»СЏ РІРµСЂРѕСЏС‚РЅРѕСЃС‚РµР№
+    FIXED,           // Р¤РёРєСЃРёСЂРѕРІР°РЅРЅР°СЏ РІРµСЂРѕСЏС‚РЅРѕСЃС‚СЊ
+    INVERSE_N,       // 1/n
+    INVERSE_SQRT_N,  // 1/в€љn
+    INVERSE_LOG_N    // 1/log n
+};
+
+//СЃРѕР±СЃС‚РІРµРЅРЅРѕ С€Р°Р±Р»РѕРЅРЅС‹Р№ РєР»Р°СЃСЃ СЂР°РЅРґРѕРјРёР·РёСЂРѕРІР°РЅРЅРѕРіРѕ РґРµСЂРµРІР°
+template<std::totally_ordered T,
+    ProbabilityStrategy Strategy = ProbabilityStrategy::FIXED,
+    double Param = 0.1>  // Р”Р»СЏ FIXED - Р·РЅР°С‡РµРЅРёРµ РІРµСЂРѕСЏС‚РЅРѕСЃС‚Рё
+requires(Strategy != ProbabilityStrategy::FIXED || ValidProbability<Param>)
+
 class RandomizedBSTree : public BSTree<T> {
 public:
     RandomizedBSTree() = default;
 
-    // Наследуем конструкторы
+    // РќР°СЃР»РµРґСѓРµРј РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂС‹
     using BSTree<T>::BSTree;
 
     void insert(const T& key) override {
-        // Пробуем вставить
+        // РџСЂРѕР±СѓРµРј РІСЃС‚Р°РІРёС‚СЊ
         bool inserted = try_insert(key);
 
-        if (inserted && should_splay_to_root()) {
-            // Перемещаем в корень
+        if (inserted && should_splay_to_root(this->node_count - 1)) {
+            // РџРµСЂРµРјРµС‰Р°РµРј РІ РєРѕСЂРµРЅСЊ
             this->root = splay_to_root(std::move(this->root), key);
-        }
-        //std::cout << "Insert " << key << " ********\n";
-        //this->print();
+        }        
     }   
 
 protected:
-    // Попытка вставки (возвращает true, если элемент был добавлен)
+    // РџРѕРїС‹С‚РєР° РІСЃС‚Р°РІРєРё (РІРѕР·РІСЂР°С‰Р°РµС‚ true, РµСЃР»Рё СЌР»РµРјРµРЅС‚ Р±С‹Р» РґРѕР±Р°РІР»РµРЅ)
     bool try_insert(const T& key) {
         if (this->insert_impl(key)) {
             ++this->node_count;
@@ -32,69 +47,99 @@ protected:
         }
         return false;
     }
-
-    // Генератор случайных чисел
-    static std::mt19937& get_rng() {
-        static std::mt19937 rng(std::random_device{}());
-        return rng;
-    }
-
-    // Вероятность перемещения в корень
-    static bool should_splay_to_root() {
-        static std::uniform_real_distribution<double> dist(0.0, 1.0);
-        // Можно сделать вероятность 1/(n+1), но для простоты фиксированная
-        return dist(get_rng()) < 0.25f; // 25%
+    
+    //РѕРїСЂРµРґРµР»СЏРµРј, РЅР°РґРѕ Р»Рё РїРѕРІРѕСЂРѕС‡РёРІР°С‚СЊ
+    bool should_splay_to_root(size_t old_size) const {
         
+        if (old_size == 0) return false;
+
+        double probability = compute_probability(old_size);
+        if (probability == 0.0) return false;
+        if (probability == 1.0) return true;
+
+        static std::mt19937 rng(std::random_device{}());
+        static std::uniform_real_distribution<double> dist(0.0, 1.0);
+
+        return dist(rng) < probability;
+    }
+    //РѕРїСЂРµРґРµР»РµРЅРёРµ РІРµСЂРѕСЏС‚РЅРѕСЃС‚Рё
+    double compute_probability(size_t n) const {
+        if constexpr (Strategy == ProbabilityStrategy::FIXED) {
+            return Param;
+        }
+        else if constexpr (Strategy == ProbabilityStrategy::INVERSE_N) {
+            return 1.0 / (n + 1);
+        }
+        else if constexpr (Strategy == ProbabilityStrategy::INVERSE_SQRT_N) {
+            return 1.0 / std::sqrt(n + 1);
+        }
+        else if constexpr (Strategy == ProbabilityStrategy::INVERSE_LOG_N) {
+            return 1.0 / std::log2(n + 2);
+        };        
+        return 0;
     }
 
-    // Перемещение узла с ключом key в корень
-    std::unique_ptr<typename BSTree<T>::Node>
-        splay_to_root(std::unique_ptr<typename BSTree<T>::Node> node, const T& key) {
-        if (!node || node->key == key) {
-            return node;
-        }
+    // РџРµСЂРµРјРµС‰РµРЅРёРµ СѓР·Р»Р° СЃ РєР»СЋС‡РѕРј key РІ РєРѕСЂРµРЅСЊ
+    std::unique_ptr<typename BSTree<T>::Node> splay_to_root(
+        std::unique_ptr<typename BSTree<T>::Node> root, const T& key) {
+        
+        if (!root || root->key == key) return root;
 
-        // Ключ в левом поддереве
-        if (key < node->key) {
-            if (!node->left) return node;
+        std::unique_ptr<typename BSTree<T>::Node> dummy_left, dummy_right;
+        typename BSTree<T>::Node* left_tree_max = nullptr;
+        typename BSTree<T>::Node* right_tree_min = nullptr;
 
-            // Zig-Zig (левый-левый)
-            if (key < node->left->key) {
-                node->left->left = splay_to_root(std::move(node->left->left), key);
-                node = rotate_right(std::move(node));
-            }
-            // Zig-Zag (левый-правый)
-            else if (key > node->left->key) {
-                node->left->right = splay_to_root(std::move(node->left->right), key);
-                if (node->left->right) {
-                    node->left = rotate_left(std::move(node->left));
+        // Р’СЂРµРјРµРЅРЅС‹Рµ СѓР·Р»С‹ РґР»СЏ СЃР±РѕСЂРєРё РґРµСЂРµРІР°
+        auto left_dummy = std::make_unique<typename BSTree<T>::Node>(T{});
+        auto right_dummy = std::make_unique<typename BSTree<T>::Node>(T{});
+        typename BSTree<T>::Node* left = left_dummy.get();
+        typename BSTree<T>::Node* right = right_dummy.get();
+
+        auto current = std::move(root);
+
+        while (current) {
+            if (key < current->key) {
+                if (current->left && key < current->left->key) {
+                    // Zig-Zig: РїСЂР°РІС‹Р№ РїРѕРІРѕСЂРѕС‚
+                    current = rotate_right(std::move(current));
                 }
-            }
+                if (!current->left) break;
 
-            return node->left ? rotate_right(std::move(node)) : std::move(node);
-        }
-        // Ключ в правом поддереве
-        else {
-            if (!node->right) return node;
-
-            // Zag-Zag (правый-правый)
-            if (key > node->right->key) {
-                node->right->right = splay_to_root(std::move(node->right->right), key);
-                node = rotate_left(std::move(node));
+                // РџСЂРёСЃРѕРµРґРёРЅСЏРµРј current Рє РїСЂР°РІРѕРјСѓ РґРµСЂРµРІСѓ
+                right->left = std::move(current);
+                right = right->left.get();
+                current = std::move(right->left);
             }
-            // Zag-Zig (правый-левый)
-            else if (key < node->right->key) {
-                node->right->left = splay_to_root(std::move(node->right->left), key);
-                if (node->right->left) {
-                    node->right = rotate_right(std::move(node->right));
+            else if (key > current->key) {
+                if (current->right && key > current->right->key) {
+                    // Zag-Zag: Р»РµРІС‹Р№ РїРѕРІРѕСЂРѕС‚
+                    current = rotate_left(std::move(current));
                 }
-            }
+                if (!current->right) break;
 
-            return node->right ? rotate_left(std::move(node)) : std::move(node);
+                // РџСЂРёСЃРѕРµРґРёРЅСЏРµРј current Рє Р»РµРІРѕРјСѓ РґРµСЂРµРІСѓ
+                left->right = std::move(current);
+                left = left->right.get();
+                current = std::move(left->right);
+            }
+            else {
+                break;
+            }
         }
+
+        // РЎРѕР±РёСЂР°РµРј РґРµСЂРµРІРѕ
+        left->right = current ? std::move(current->left) : nullptr;
+        right->left = current ? std::move(current->right) : nullptr;
+
+        if (current) {
+            current->left = std::move(left_dummy->right);
+            current->right = std::move(right_dummy->left);
+        }
+
+        return current ? std::move(current) : std::move(current ? std::move(current) : std::move(left_dummy->right));
     }
 
-    // Правый поворот
+    // РџСЂР°РІС‹Р№ РїРѕРІРѕСЂРѕС‚
     std::unique_ptr<typename BSTree<T>::Node>
         rotate_right(std::unique_ptr<typename BSTree<T>::Node> x) {
         
@@ -105,7 +150,7 @@ protected:
         return y;
     }
 
-    // Левый поворот
+    // Р›РµРІС‹Р№ РїРѕРІРѕСЂРѕС‚
     std::unique_ptr<typename BSTree<T>::Node>
         rotate_left(std::unique_ptr<typename BSTree<T>::Node> x) {        
         

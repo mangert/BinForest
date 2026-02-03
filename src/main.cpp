@@ -5,6 +5,7 @@
 #include "Treap.h"
 #include "OptimalBST.h"
 #include "RandomizedBST.h"
+#include "SplayTree.h"
 #include <cassert>
 #include <set>
 
@@ -342,6 +343,10 @@ void test_simple_obst() {
     tree.print();
 }
 
+void foo(ITree<int>& tree) {
+    tree.contains(42);
+}
+
 int main() {
 	setlocale(LC_ALL, "Russian");
     /*
@@ -393,12 +398,19 @@ int main() {
 
     test_dp_manual();*/
 
-    int n = 10000; //количество элементов для тестов
+    /*int n = 10000; //количество элементов для тестов
 
     std::cout << "\nТестирование функционала деревьев\n\n";
     std::cout << "-------- Часть 1: n= " << n << "\n";
     std::cout << "****** BSTree **********************\n";
 
-    TreeTest<int, RandomizedBSTree<int>>::comprehensive_test(n);
+    TreeTest<int, RandomizedBSTree<int, ProbabilityStrategy::FIXED, 0.25>>::comprehensive_test(n);
+    std::cout << "****** BSTree **********************\n";
+    TreeTest<int, RandomizedBSTree<int, ProbabilityStrategy::INVERSE_LOG_N>>::comprehensive_test(n);
+    std::cout << "****** BSTree **********************\n";
+    TreeTest<int, RandomizedBSTree<int, ProbabilityStrategy::INVERSE_N>>::comprehensive_test(n);
+    std::cout << "****** BSTree **********************\n";
+    TreeTest<int, RandomizedBSTree<int, ProbabilityStrategy::INVERSE_SQRT_N>>::comprehensive_test(n);*/
+      
 
 }

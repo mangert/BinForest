@@ -48,7 +48,7 @@ protected:
         return false;
     }
     
-    //определяем, надо ли поворочивать
+    //определяем, надо ли поворачивать
     bool should_splay_to_root(size_t old_size) const {
         
         if (old_size == 0) return false;

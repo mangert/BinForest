@@ -10,6 +10,7 @@
 #include <functional>
 #include <concepts>
 #include "OptimalBST.h"
+#include "SplayTree.h"
 
 template <std::integral T, std::derived_from<ITree<T>> Tree>
 class TreeTest {
@@ -172,6 +173,13 @@ private:
 		std::cout << "\n2.5 10 percent search tests:\n";
 		test_random_search_10_percent(sorted_tree, sorted_data, "Sorted tree");
 		test_random_search_10_percent(random_tree, random_data, "Random tree");
+
+		// 2.4а Дополнительный тест поиска 10% случайных элементов для splay
+		if constexpr (std::is_same_v<Tree, SplayTree<T>>) {
+			std::cout << "\n2.5 10 percent find_and_splay tests:\n";
+			test_random_splay_find_10_percent(sorted_tree, sorted_data, "Sorted tree");
+			test_random_splay_find_10_percent(random_tree, random_data, "Random tree");
+		}
 
 		// 2.5 Тест удаления 10% случайных элементов
 		std::cout << "\n2.5 10 percent removal tests:\n";
@@ -433,6 +441,47 @@ private:
 		return tree;
 	}
 
+	// тест поиска N/10 случайных чисел в splay-дереве
+	static void test_random_splay_find_10_percent(Tree& tree, const std::vector<T>& all_data,
+		const std::string& tree_name) {
+		std::cout << "\n2.5 " << tree_name << " - Find and splay 10% random elements:\n";
+
+		size_t n = all_data.size();
+		size_t search_count = n / 10;  // 10% от общего количества
+
+		if (search_count == 0) {
+			std::cout << "  (Skipped: tree too small)\n";
+			return;
+		}
+
+		// Выбираем случайные элементы для поиска
+		std::vector<T> search_keys;
+		std::sample(all_data.begin(), all_data.end(),
+			std::back_inserter(search_keys),
+			search_count,
+			std::mt19937{ std::random_device{}() });
+
+		// Измеряем время поиска
+		auto start = std::chrono::high_resolution_clock::now();
+		size_t found_count = 0;
+		for (const auto& key : search_keys) {
+			if (tree.find_and_splay(key)) {
+				++found_count;
+			}
+		}
+		auto end = std::chrono::high_resolution_clock::now();
+		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+		// Все элементы должны быть найдены (они точно есть в дереве)
+		assert(found_count == search_keys.size());
+
+		std::cout << "  Searched " << search_count << " random keys in "
+			<< duration.count() << " ms\n";
+		std::cout << "  Average search time: "
+			<< (duration.count() * 1000.0 / search_count) << " us per search\n";
+		std::cout << "  All " << found_count << " keys were found\n";
+	}
+
 	// тест поиска N/10 случайных чисел
 	static void test_random_search_10_percent(Tree& tree, const std::vector<T>& all_data,
 		const std::string& tree_name) {
@@ -445,7 +494,7 @@ private:
 			std::cout << "  (Skipped: tree too small)\n";
 			return;
 		}
-
+		
 		// Выбираем случайные элементы для поиска
 		std::vector<T> search_keys;
 		std::sample(all_data.begin(), all_data.end(),

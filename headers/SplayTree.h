@@ -51,7 +51,7 @@ public:
             this->root = std::move(new_node);
         }
 
-        ++this->node_count;
+        ++this->node_count;        
     }    
 
     //удаление элемента
@@ -99,115 +99,70 @@ public:
         return this->root && this->root->key == key;
     }
 
-protected:
+protected:    
     // Итеративный splay
     std::unique_ptr<typename BSTree<T>::Node> splay(
         std::unique_ptr<typename BSTree<T>::Node> root, const T& key) {
-        
         if (!root) return nullptr;
 
-        // Фиктивные узлы для левого и правого деревьев
         auto left_dummy = std::make_unique<typename BSTree<T>::Node>(T{});
         auto right_dummy = std::make_unique<typename BSTree<T>::Node>(T{});
-        typename BSTree<T>::Node* left_max = left_dummy.get();
-        typename BSTree<T>::Node* right_min = right_dummy.get();
+        typename BSTree<T>::Node* left_tail = left_dummy.get();
+        typename BSTree<T>::Node* right_tail = right_dummy.get();
 
         std::unique_ptr<typename BSTree<T>::Node> current = std::move(root);
 
-        // Пока не найдём ключ или не дойдём до листа
-        while (current && current->key != key) {
+        while (true) {
             if (key < current->key) {
-                // Если нет левого ребёнка - ключ не найден
-                if (!current->left) {
-                    break;
-                }
+                if (!current->left) break;
 
-                // ZIG-ZIG (key в левом-левом поддереве)
                 if (key < current->left->key) {
-                    // Первый правый поворот
-                    current = rotate_right(std::move(current));
-                    if (!current->left) break;
+                    // ZIG-ZIG: делаем правый поворот
+                    auto child = std::move(current->left);
+                    current->left = std::move(child->right);
+                    child->right = std::move(current);
+                    current = std::move(child);
 
-                    // Второй правый поворот
-                    current = rotate_right(std::move(current));
                     if (!current->left) break;
                 }
-                // ZIG (key в левом поддереве, но не в левом-левом)
-                else {
-                    // Подготавливаем ZIG: перемещаем current в правое дерево
-                    right_min->left = std::move(current);
-                    right_min = right_min->left.get();
-                    current = std::move(right_min->left);
-                    if (!current) break;
 
-                    // На следующей итерации будет ZIG (правый поворот)
-                    // или ZIG-ZIG/ZIG-ZAG в зависимости от нового current
-                }
+                // Подвешиваем current в правое дерево
+                right_tail->left = std::move(current);
+                right_tail = right_tail->left.get();
+                current = std::move(right_tail->left);
+
             }
-            else { // key > current->key (равенство исключено условием цикла)
-                // Симметрично для правого поддерева
-                if (!current->right) {
-                    break;
-                }
+            else if (key > current->key) {
+                if (!current->right) break;
 
-                // ZAG-ZAG (key в правом-правом поддереве)
                 if (key > current->right->key) {
-                    current = rotate_left(std::move(current));
-                    if (!current->right) break;
-                    current = rotate_left(std::move(current));
+                    // ZAG-ZAG: делаем левый поворот
+                    auto child = std::move(current->right);
+                    current->right = std::move(child->left);
+                    child->left = std::move(current);
+                    current = std::move(child);
+
                     if (!current->right) break;
                 }
-                // ZAG (key в правом поддереве, но не в правом-правом)
-                else {
-                    left_max->right = std::move(current);
-                    left_max = left_max->right.get();
-                    current = std::move(left_max->right);
-                    if (!current) break;
-                }
+
+                // Подвешиваем current в левое дерево
+                left_tail->right = std::move(current);
+                left_tail = left_tail->right.get();
+                current = std::move(left_tail->right);
+
+            }
+            else {
+                break;
             }
         }
 
-        // Сборка финального дерева
-        // current - либо узел с key, либо ближайший к нему
+        // Сборка
+        left_tail->right = std::move(current->left);
+        right_tail->left = std::move(current->right);
 
-        if (current) {
-            // Присоединяем поддеревья current к временным деревьям
-            left_max->right = std::move(current->left);
-            right_min->left = std::move(current->right);
+        current->left = std::move(left_dummy->right);
+        current->right = std::move(right_dummy->left);
 
-            // Собираем: left_dummy.right <- current -> right_dummy.left
-            current->left = std::move(left_dummy->right);
-            current->right = std::move(right_dummy->left);
-            return current;
-        }
-
-        // Ключ не найден - возвращаем ближайший элемент
-        if (left_dummy->right) {
-            return std::move(left_dummy->right);
-        }
-        return std::move(right_dummy->left);
-    }
-
-
-    // Правый поворот
-    std::unique_ptr<typename BSTree<T>::Node>
-        rotate_right(std::unique_ptr<typename BSTree<T>::Node> x) {
-
-        if (!x || !x->left) return x;
-        auto y = std::move(x->left);
-        x->left = std::move(y->right);
-        y->right = std::move(x);
-        return y;
-    }
-
-    // Левый поворот
-    std::unique_ptr<typename BSTree<T>::Node>
-        rotate_left(std::unique_ptr<typename BSTree<T>::Node> x) {
-
-        if (!x || !x->right) return x;
-        auto y = std::move(x->right);
-        x->right = std::move(y->left);
-        y->left = std::move(x);
-        return y;
+        return current;
     }
 };

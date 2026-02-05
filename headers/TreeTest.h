@@ -174,11 +174,20 @@ private:
 		test_random_search_10_percent(sorted_tree, sorted_data, "Sorted tree");
 		test_random_search_10_percent(random_tree, random_data, "Random tree");
 
-		// 2.4а Дополнительный тест поиска 10% случайных элементов для splay
+		// 2.4а Дополнительные тесты поиска случайных элементов для splay
 		if constexpr (std::is_same_v<Tree, SplayTree<T>>) {
-			std::cout << "\n2.5 10 percent find_and_splay tests:\n";
+
+			std::cout << "\n2.5a 10 percent find_and_splay tests:\n";
 			test_random_splay_find_10_percent(sorted_tree, sorted_data, "Sorted tree");
 			test_random_splay_find_10_percent(random_tree, random_data, "Random tree");
+
+			std::cout << "\n2.5b Twice find tests:\n";
+			test_splay_find_twice(sorted_tree, sorted_data, "Sorted tree");
+			test_splay_find_twice(random_tree, random_data, "Random tree");
+			
+			std::cout << "\n2.5c Warmup test:\n";
+			warmup_test(sorted_tree, size / 2, size / 100, "Sorted tree", size);
+			warmup_test(random_tree, size / 2, size / 100, "Random tree", size);
 		}
 
 		// 2.5 Тест удаления 10% случайных элементов
@@ -444,7 +453,7 @@ private:
 	// тест поиска N/10 случайных чисел в splay-дереве
 	static void test_random_splay_find_10_percent(Tree& tree, const std::vector<T>& all_data,
 		const std::string& tree_name) {
-		std::cout << "\n2.5 " << tree_name << " - Find and splay 10% random elements:\n";
+		std::cout << "\n2.5a " << tree_name << " - Find and splay 10% random elements:\n";
 
 		size_t n = all_data.size();
 		size_t search_count = n / 10;  // 10% от общего количества
@@ -479,7 +488,51 @@ private:
 			<< duration.count() << " ms\n";
 		std::cout << "  Average search time: "
 			<< (duration.count() * 1000.0 / search_count) << " us per search\n";
-		std::cout << "  All " << found_count << " keys were found\n";
+		std::cout << "  Size: " << tree.size() << ", Height: " << tree.height() << "\n";
+		std::cout << "  All " << found_count << " keys were found\n";		
+	}
+
+	// тест поиска c повторами в splay-дереве
+	static void test_splay_find_twice(Tree& tree, const std::vector<T>& all_data,
+		const std::string& tree_name) {
+		std::cout << "\n2.5b " << tree_name << " - Find and splay twice:\n";
+
+		size_t n = all_data.size();
+		size_t search_count = n / 10;  // 10% от общего количества
+
+		if (search_count == 0) {
+			std::cout << "  (Skipped: tree too small)\n";
+			return;
+		}
+
+		// Выбираем случайные элементы для поиска
+		std::vector<T> search_keys;
+		std::sample(all_data.begin(), all_data.end(),
+			std::back_inserter(search_keys),
+			search_count,
+			std::mt19937{ std::random_device{}() });
+		for (size_t i = 0; i != 2; ++i) {
+			// Измеряем время поиска
+			auto start = std::chrono::high_resolution_clock::now();
+			size_t found_count = 0;
+			for (const auto& key : search_keys) {
+				if (tree.find_and_splay(key)) {
+					++found_count;
+				}
+			}
+			auto end = std::chrono::high_resolution_clock::now();
+			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+			// Все элементы должны быть найдены (они точно есть в дереве)
+			assert(found_count == search_keys.size());
+
+			std::cout << "Step " << i <<"  Searched " << search_count << " random keys in "
+				<< duration.count() << " ms\n";
+			std::cout << "  Average search time: "
+				<< (duration.count() * 1000.0 / search_count) << " us per search\n";
+			std::cout << "  Size: " << tree.size() << ", Height: " << tree.height() << "\n";
+			std::cout << "  All " << found_count << " keys were found\n";
+		}
 	}
 
 	// тест поиска N/10 случайных чисел
@@ -520,8 +573,36 @@ private:
 			<< duration.count() << " ms\n";
 		std::cout << "  Average search time: "
 			<< (duration.count() * 1000.0 / search_count) << " us per search\n";
+		std::cout << "  Size: " << tree.size() << ", Height: " << tree.height() << "\n";
 		std::cout << "  All " << found_count << " keys were found\n";
 	}
+
+	// Тест "прогрев" — делаем много поисков, затем измеряем
+	static void warmup_test(Tree& tree, int warmup_searches, 
+		int measure_searches, const std::string& tree_name, size_t size) {
+		
+		std::cout << "\n2.5c " << tree_name << " - Warmup test:\n";
+		// 1. Прогрев
+		for (int i = 0; i < warmup_searches; i++) {
+			tree.find_and_splay(rand() % size);
+		}
+
+		// 2. Измерение на прогретом дереве
+		auto start = std::chrono::high_resolution_clock::now();
+		for (int i = 0; i < measure_searches; i++) {
+			tree.find_and_splay(rand() % size);
+		}
+		auto end = std::chrono::high_resolution_clock::now();
+		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+		std::cout << "After " << warmup_searches << " seaches: "
+			<< duration.count() * 1000.0 / measure_searches << " us per search"
+			<< ", height: " << tree.height() << "\n";
+	}
+
+	// Для отсортированного дерева:
+	// warmup_test(tree, 1000, 1000);   // Мало прогревов
+	// warmup_test(tree, 10000, 1000);  // Средне
+	// warmup_test(tree, 50000, 1000);  // Много
 
 	// тест удаления N/10 случайных чисел
 	static void test_random_removal_10_percent(Tree& tree, const std::vector<T>& all_data,

@@ -1,146 +1,20 @@
-
-Тестирование функционала деревьев
-
--------- Часть 1: n= 100000
-****** Splay **********************
-========================================
-COMPREHENSIVE TREE TEST (size = 100000)
-========================================
-
-TREE TYPE: Dynamic tree
-1. EDGE CASES TEST
-------------------
-+ Empty tree checks passed
-+ Single element checks passed
-+ Duplicate prevention check passed
-+ Single element removal passed
-+ Non-existent removal passed
-+ Rapid insert/remove cycle passed
-+ Clear operation passed
-++ All edge cases passed
-
+OPERATION_COUNT
 2. MAIN TEST (sorted vs random data)
 -------------------------------------
 2.1 Sorted data (degenerate tree):
-  Built in 156 ms
-  Size: 100000, Height: 99999
+  Built in 93958 ms
+  Size: 100000, Height: 122
 2.1 Random data:
-  Built in 436 ms
-  Size: 100000, Height: 61
-
-2.3 Traversal correctness:
-  sorted tree traversals:
-    + In-order is sorted (100000 elements)
-    + All traversals have same size
-    + No duplicates in in-order
-    + Visitor in-order matches
-  random tree traversals:
-    + In-order is sorted (100000 elements)
-    + All traversals have same size
-    + No duplicates in in-order
-    + Visitor in-order matches
-
-2.5 10 percent search tests:
-
-2.5 Sorted tree - Search 10% random elements:
-  Searched 10000 random keys in 8740 ms
-  Average search time: 874 us per search
-  Size: 100000, Height: 99999
-  All 10000 keys were found
-
-2.5 Random tree - Search 10% random elements:
-  Searched 10000 random keys in 9 ms
-  Average search time: 0.9 us per search
-  Size: 100000, Height: 61
-  All 10000 keys were found
-
-2.5a 10 percent find_and_splay tests:
-
-2.5a Sorted tree - Find and splay 10% random elements:
-  Searched 10000 random keys in 43 ms
-  Average search time: 4.3 us per search
-  Size: 100000, Height: 14003
-  All 10000 keys were found
-
-2.5a Random tree - Find and splay 10% random elements:
-  Searched 10000 random keys in 40 ms
-  Average search time: 4 us per search
-  Size: 100000, Height: 44
-  All 10000 keys were found
-
-2.5b Twice find tests:
-
-2.5b Sorted tree - Find and splay twice:
-Step 0  Searched 10000 random keys in 21 ms
-  Average search time: 2.1 us per search
-  Size: 100000, Height: 13946
-  All 10000 keys were found
-Step 1  Searched 10000 random keys in 17 ms
-  Average search time: 1.7 us per search
-  Size: 100000, Height: 11218
-  All 10000 keys were found
-
-2.5b Random tree - Find and splay twice:
-Step 0  Searched 10000 random keys in 37 ms
-  Average search time: 3.7 us per search
-  Size: 100000, Height: 43
-  All 10000 keys were found
-Step 1  Searched 10000 random keys in 34 ms
-  Average search time: 3.4 us per search
-  Size: 100000, Height: 43
-  All 10000 keys were found
-
-2.5c Warmup test:
-
-2.5c Sorted tree - Warmup test:
-After 50000 seaches: 2 us per search, height: 49
-
-2.5c Random tree - Warmup test:
-After 50000 seaches: 3 us per search, height: 58
-
-2.5 10 percent removal tests:
-
-2.6 Sorted tree - Remove 10% random elements:
-  Removed 10000 random keys in 33 ms
-  Average removal time: 3.3 us per removal
-  Final size: 90000 (removed 10000 elements)
-
-2.6 Random tree - Remove 10% random elements:
-  Removed 10000 random keys in 60 ms
-  Average removal time: 6 us per removal
-  Final size: 90000 (removed 10000 elements)
-++ Main test completed
-
-3. PERFORMANCE COMPARISON
--------------------------
-Build times:
-  Degenerate (sorted): 137 ms, height = 99999
-  Balanced (random):   448 ms, height = 59
-
-Search time (middle element, 1000 iterations):
-  Degenerate: 674237 ns per search
-  Balanced:   200.7 ns per search
-  Ratio (degenerate/balanced): 3359.43x
-++ Performance comparison completed
-
-4. COPY/MOVE SEMANTICS TEST
----------------------------
-+ Copy constructor
-+ Copy assignment
-+ Move constructor
-+ Move assignment
-+ Self-assignment
-++ Copy/move semantics test completed
-
-5. STRESS TEST (size = 5000)
------------------------
-+ Insert: 16 ms
-+ Search all: 1 ms
-+ Inorder traversal: 2 ms
-+ Remove all: 22 ms
-+ Stress test completed (total: 41 ms)
+  Built in 96872 ms
+  Size: 100000, Height: 122
 
 
-========================================
-ALL TESTS PASSED SUCCESSFULLY!
-========================================
+  NEVER
+  2. MAIN TEST (sorted vs random data)
+-------------------------------------
+2.1 Sorted data (degenerate tree):
+  Built in 303 ms
+  Size: 100000, Height: 113
+2.1 Random data:
+  Built in 1351 ms
+  Size: 100000, Height: 113

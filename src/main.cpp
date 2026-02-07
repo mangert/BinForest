@@ -6,6 +6,7 @@
 #include "OptimalBST.h"
 #include "RandomizedBST.h"
 #include "SplayTree.h"
+#include "OptimalTreap.h"
 #include <cassert>
 #include <set>
 #include <chrono>
@@ -196,7 +197,7 @@ int main() {
     //test_splay_basic();
     //test_splay_sequence();
 
-    int n = 100000; //количество элементов для тестов
+    //int n = 100000; //количество элементов для тестов
     
     // Добавь в твой тест    
     /*
@@ -216,11 +217,16 @@ int main() {
         std::cout << "n=" << n << ", time=" << std::chrono::duration<double>(end - start).count() << "s" << std::endl;
     }
     */
-    std::cout << "\nТестирование функционала деревьев\n\n";
+    /*std::cout << "\nТестирование функционала деревьев\n\n";
     std::cout << "-------- Часть 1: n= " << n << "\n";
     std::cout << "****** Splay **********************\n";
 
-    TreeTest<int, SplayTree<int>>::comprehensive_test(n);
+    TreeTest<int, SplayTree<int>>::comprehensive_test(n);*/
+
+    int n = 100000; //количество элементов для тестов
+    TreeTest<int, OptimalTreap<int, RebuildStrategy::OPERATION_COUNT>>::comprehensive_test(n);
+    //OptimalTreap<int> tree;
+    //tree.test_rebuild();
 
 
 

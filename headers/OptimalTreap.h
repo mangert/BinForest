@@ -9,36 +9,22 @@
 #include <algorithm>
 #include <random>
 
-enum class RebuildStrategy {
-	NEVER,           // Только ручная перестройка
-	OPERATION_COUNT, // По количеству операций
-	HEIGHT_THRESHOLD, // По превышению высоты
-	HYBRID           // И то, и другое
-};
-
-
-template <std::totally_ordered T,
-	RebuildStrategy Strategy = RebuildStrategy::OPERATION_COUNT>
+template <std::totally_ordered T>
 class OptimalTreap : public ITree<T> {
 
 public:
 	struct Node { //структура для узла 
-		T key;	
-		
+		T key;			
 		std::unique_ptr<Node> left;
-		std::unique_ptr<Node> right;
-
-		float base_priority;
+		std::unique_ptr<Node> right;		
+		double base_priority;
 		double priority;
 		size_t access_count = 0;   // Счётчик обращений	
-
 		
 		//Конструкторы и присваивание
 		explicit Node(const T& k)
-			: key(k), base_priority(1.0 + (std::hash<T>{}(key) % 1000) / 10000.0), 
-			left(nullptr), right(nullptr) {
-			
-			update_priority();
+			: key(k), left(nullptr), right(nullptr), base_priority(generate_base_priority()) {
+			priority = base_priority;			
 		}
 
 		//Копирование
@@ -51,14 +37,23 @@ public:
 
 		~Node() = default;
 
+		//генератор для базового приоритета
+		static double generate_base_priority() {
+			static std::mt19937 generator(std::random_device{}());
+			static std::uniform_real_distribution<double> distribution(0.0, 0.1);
+			return 1.0 + distribution(generator);  // [1.0, 1.1)
+		}
+
 		// Обновляем приоритет при изменении access_count
-		void update_priority() {
-			// Формула: чем больше доступов, тем выше приоритет (ближе к корню)
-			priority = base_priority + std::log(1.0 + access_count);
+		void update_priority() {			
+			
+			priority = base_priority + 50.0 * std::log(1.0 + access_count);
 		}
 
 		// Увеличиваем счётчик и обновляем приоритет
 		void record_access() {
+			/*std::cout << "[DEBUG] record_access: count=" << access_count
+				<< ", будет priority=" << (base_priority + 50.0 * std::log(1.0 + access_count)) << "\n";*/
 			++access_count;
 			update_priority();
 		}
@@ -118,20 +113,16 @@ public:
 	//вставка
 	void insert(const T& key) override {
 		// Сначала проверяем, есть ли уже
-		Node* existing = find_node(key);  // Нужен не-const метод find_node
+		Node* existing = find_node(key); 
 
 		if (existing) {
 			// Уже есть — просто обновляем статистику
-			existing->record_access();
-			// Можно локально перебалансировать
-			//root = splay_by_priority(std::move(root), key);
+			existing->record_access();			
 		}
 		else {
 			// Нет — вставляем
 			root = insert_impl(std::move(root), key);			
-		}
-		++operations_since_rebuild;
-		check_and_rebuild();
+		}		
 	};
 
 	//поиск элемента
@@ -142,22 +133,27 @@ public:
 
 	// Non-const версия с обновлением статистики
 	bool find_and_update(const T& key) {
-		
 		Node* node = find_node(key);
 		if (node) {
-			node->record_access();			
-			++operations_since_rebuild;
-			check_and_rebuild();
+			/*std::cout << "[DEBUG] Найден ключ " << key
+				<< ", access_count до: " << node->access_count
+				<< ", priority до: " << node->priority << "\n";*/
+
+			node->record_access();
+
+			/*std::cout << "[DEBUG] После record_access: "
+				<< "access_count: " << node->access_count
+				<< ", priority: " << node->priority << "\n";*/
+			
+			root = bubble_up_by_split_merge(std::move(root), key);
+
 			return true;
 		}
 		return false;
-	}	
-
+	}
 	//удаление элемента
 	void remove(const T& key) override {
-		root = remove_impl(std::move(root), key);
-		++operations_since_rebuild;
-		check_and_rebuild();
+		root = remove_impl(std::move(root), key);		
 	}
 
 	//очистка дерева (итеративно)
@@ -307,92 +303,7 @@ public:
 			os << "\n";
 			level++;
 		}
-	}
-
-	
-	void test_rebuild() {
-		std::cout << "=== Тест перестройки оптимального дерева ===\n";
-
-		// 1. Создаём дерево с 7 элементами
-		clear();
-		std::vector<int> keys = { 50, 30, 70, 20, 40, 60, 80 };
-		for (int key : keys) {
-			insert(key);
-		}
-
-		std::cout << "Исходное дерево (после вставки):\n";
-		print();
-		std::cout << "Высота: " << height() << ", Размер: " << size() << "\n\n";
-
-		// 2. Имитируем поиски (увеличиваем access_count для некоторых ключей)
-		std::cout << "Имитируем частые обращения к ключам 30, 70, 20...\n";
-
-		// Частые обращения к 30
-		for (int i = 0; i < 5; i++) {
-			find_and_update(30);
-		}
-
-		// Частые обращения к 70  
-		for (int i = 0; i < 3; i++) {
-			find_and_update(70);
-		}
-
-		// Одно обращение к 20
-		find_and_update(20);
-
-		// 3. Покажем статистику до перестройки
-		std::cout << "\nСтатистика до перестройки:\n";
-		std::cout << "Key\tAccess\tPriority\n";
-		std::cout << "------------------------\n";
-
-		auto show_stats = [](Node* node) {
-			if (node) {
-				std::cout << node->key << "\t"
-					<< node->access_count << "\t"
-					<< node->priority << "\n";
-			}
-			};
-
-		// Простой обход для вывода статистики
-		std::function<void(Node*)> print_stats = [&](Node* node) {
-			if (!node) return;
-			print_stats(node->left.get());
-			show_stats(node);
-			print_stats(node->right.get());
-			};
-
-		print_stats(root.get());
-
-		// 4. Принудительная перестройка
-		std::cout << "\nВыполняем перестройку...\n";
-		rebuild_optimal();
-
-		// 5. Покажем результат
-		std::cout << "\nДерево после перестройки:\n";
-		print();
-		std::cout << "Высота: " << height() << "\n";
-
-		// 6. Проверим, что дерево осталось корректным BST
-		std::cout << "\nПроверка корректности BST (inorder обход):\n";
-		auto inorder_result = inorder();
-		for (int key : inorder_result) {
-			std::cout << key << " ";
-		}
-		std::cout << "\n";
-
-		// Проверим отсортированность
-		bool is_sorted = std::is_sorted(inorder_result.begin(), inorder_result.end());
-		std::cout << "Inorder отсортирован: " << (is_sorted ? "ДА" : "НЕТ") << "\n";
-
-		// 7. Покажем новую статистику
-		std::cout << "\nСтатистика после перестройки:\n";
-		std::cout << "Key\tAccess\tPriority\n";
-		std::cout << "------------------------\n";
-		print_stats(root.get());
-
-		std::cout << "=== Тест завершён ===\n\n";
-	}
-
+	}	
 
 protected:
 	//======== вспомогательные функции split и merge =====/
@@ -448,6 +359,36 @@ protected:
 		}
 	}
 
+	//функция локальной перестройки
+	std::unique_ptr<Node> bubble_up_by_split_merge(
+		std::unique_ptr<Node> tree, const T& key) {
+
+		if (!tree) return nullptr;
+
+		// 1. Разделяем на <key и >=key
+		auto [left, middle_right] = split(std::move(tree), key);
+
+		if (!middle_right) {
+			// Ключа нет (но мы только что его нашли!)
+			return merge(std::move(left), std::move(middle_right));
+		}
+
+		// 2. Разделяем middle_right на =key и >key
+		auto next_key = get_next_key(key);
+		auto [middle, right] = split(std::move(middle_right), next_key);
+
+		if (!middle) {
+			// Странно, но на всякий случай
+			return merge(std::move(left), merge(std::move(middle), std::move(right)));
+		}
+
+		// 3. middle содержит узел с key (приоритет уже обновлён в find_node)
+		// 4. Merge в правильном порядке: left + middle + right
+		//    Благодаря новому приоритету middle займёт правильное место
+
+		return merge(merge(std::move(left), std::move(middle)), std::move(right));
+	}
+
 	//-------------Вспомогательные функции для поиска -------//
 	
 	Node* find_node(const T& key) {
@@ -459,8 +400,7 @@ protected:
 			else if (key > current->key) {
 				current = current->right.get();
 			}
-			else {
-				current->record_access();
+			else {				
 				return current;  // Нашли
 			}
 		}
@@ -481,81 +421,7 @@ protected:
 			}
 		}
 		return nullptr;  // Не нашли
-	}
-
-	//-------------Перестройка дерева -------//
-	//основная функция перестройки
-	void rebuild_optimal() {
-		if (!root) return;
-
-		// 1. Собираем все узлы в вектор unique_ptr (inorder - уже отсортировано!)
-		std::vector<std::unique_ptr<Node>> all_nodes;
-		all_nodes.reserve(node_count);
-		collect_all_nodes_inorder(all_nodes, std::move(root));
-
-		// 2. НЕ нужно сортировать! Узлы уже в порядке возрастания ключей
-		// 3. Строим декартово дерево
-		root = build_cartesian_from_sorted(std::move(all_nodes));
-	}
-
-	//вспомогательная функция для сбора дерева в вектор
-	void collect_all_nodes_inorder(std::vector<std::unique_ptr<Node>>& result,
-		std::unique_ptr<Node>&& subtree) {
-		if (!subtree) return;
-
-		// 1. Сначала сохраняем правое поддерево (чтобы не потерять после перемещения subtree)
-		auto right_subtree = std::move(subtree->right);
-
-		// 2. Рекурсивно обрабатываем левое поддерево
-		collect_all_nodes_inorder(result, std::move(subtree->left));
-
-		// 3. Теперь subtree->left уже перемещён, можно безопасно переместить сам узел
-		//    Отсоединяем оставшееся правое поддерево (оно сохранено в right_subtree)
-		//    и добавляем узел в результат
-		result.push_back(std::move(subtree));
-
-		// 4. Обрабатываем правое поддерево
-		collect_all_nodes_inorder(result, std::move(right_subtree));
-	}
-
-	//вспомогательная функция построения дерева из вектора
-	std::unique_ptr<Node> build_cartesian_from_sorted(
-		std::vector<std::unique_ptr<Node>>&& sorted_nodes) {
-
-		if (sorted_nodes.empty()) return nullptr;
-
-		// 1. Находим узел с максимальным приоритетом
-		int max_prio_idx = 0;
-		for (size_t i = 1; i < sorted_nodes.size(); ++i) {			
-			if (sorted_nodes[i]->priority > sorted_nodes[max_prio_idx]->priority) {
-				max_prio_idx = i;
-			}
-		}
-
-		// 2. Этот узел становится корнем
-		std::unique_ptr<Node> root = std::move(sorted_nodes[max_prio_idx]);
-
-		// 3. Разделяем оставшиеся узлы на левые и правые (по ключу)
-		std::vector<std::unique_ptr<Node>> left_nodes;
-		std::vector<std::unique_ptr<Node>> right_nodes;
-
-		for (size_t i = 0; i < sorted_nodes.size(); ++i) {
-			if (i == max_prio_idx) continue;  // Пропускаем корень
-
-			if (sorted_nodes[i]->key < root->key) {
-				left_nodes.push_back(std::move(sorted_nodes[i]));
-			}
-			else {
-				right_nodes.push_back(std::move(sorted_nodes[i]));
-			}
-		}
-
-		// 4. Рекурсивно строим левое и правое поддеревья
-		root->left = build_cartesian_from_sorted(std::move(left_nodes));
-		root->right = build_cartesian_from_sorted(std::move(right_nodes));
-
-		return root;
-	}
+	}	
 
 	// --------- Шаблонные реализации обходов --------- //
 	template<typename Action>
@@ -757,43 +623,13 @@ protected:
 			// key нет, хотя он максимальный
 			return merge(std::move(left), std::move(middle_right));
 		}
-	}
+	}	
 
-	void check_and_rebuild() {
-		if constexpr (Strategy == RebuildStrategy::NEVER) {
-			return;
-		}
-
-		bool should_rebuild = false;
-
-		if constexpr (Strategy == RebuildStrategy::OPERATION_COUNT ||
-			Strategy == RebuildStrategy::HYBRID) {
-			if (operations_since_rebuild >= REBUILD_INTERVAL) {
-				should_rebuild = true;
-			}
-		}
-
-		if constexpr (Strategy == RebuildStrategy::HEIGHT_THRESHOLD ||
-			Strategy == RebuildStrategy::HYBRID) {
-			double max_allowed_height = HEIGHT_FACTOR * std::log2(node_count + 1);
-			if (height() > max_allowed_height) {
-				should_rebuild = true;
-			}
-		}
-
-		if (should_rebuild) {
-			rebuild_optimal();
-			operations_since_rebuild = 0;
-		}
-	}
-
-
-protected:
+//protected:
+public:
 	std::unique_ptr<Node> root = nullptr;
 	size_t node_count = 0;
 
 	// Данные для стратегий
-	size_t operations_since_rebuild = 0;
-	static constexpr size_t REBUILD_INTERVAL = 1000;
-	static constexpr double HEIGHT_FACTOR = 2.0; // 2 * log2(n)
+	size_t operations_since_rebuild = 0;	
 };

@@ -94,7 +94,7 @@ public:
     }
 
     //функция splay-поиска
-    bool find_and_splay(const T& key) {
+    bool find_and_update(const T& key) {
         this->root = splay(std::move(this->root), key);
         return this->root && this->root->key == key;
     }

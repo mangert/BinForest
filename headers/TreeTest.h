@@ -11,6 +11,7 @@
 #include <concepts>
 #include "OptimalBST.h"
 #include "SplayTree.h"
+#include "OptimalTreap.h"
 
 template <std::integral T, std::derived_from<ITree<T>> Tree>
 class TreeTest {
@@ -175,7 +176,8 @@ private:
 		test_random_search_10_percent(random_tree, random_data, "Random tree");
 
 		// 2.4а Дополнительные тесты поиска случайных элементов для splay
-		if constexpr (std::is_same_v<Tree, SplayTree<T>>) {
+		if constexpr (std::is_same_v<Tree, SplayTree<T>> || 
+			std::is_same_v<Tree, OptimalTreap<T>>) {
 
 			std::cout << "\n2.5a 10 percent find_and_splay tests:\n";
 			test_random_splay_find_10_percent(sorted_tree, sorted_data, "Sorted tree");
@@ -185,7 +187,7 @@ private:
 			test_splay_find_twice(sorted_tree, sorted_data, "Sorted tree");
 			test_splay_find_twice(random_tree, random_data, "Random tree");
 			
-			std::cout << "\n2.5c Warmup test:\n";
+			std::cout << "\n2.5c Warmup tests:\n";
 			warmup_test(sorted_tree, size / 2, size / 100, "Sorted tree", size);
 			warmup_test(random_tree, size / 2, size / 100, "Random tree", size);
 		}
@@ -474,7 +476,7 @@ private:
 		auto start = std::chrono::high_resolution_clock::now();
 		size_t found_count = 0;
 		for (const auto& key : search_keys) {
-			if (tree.find_and_splay(key)) {
+			if (tree.find_and_update(key)) {
 				++found_count;
 			}
 		}
@@ -496,6 +498,7 @@ private:
 	static void test_splay_find_twice(Tree& tree, const std::vector<T>& all_data,
 		const std::string& tree_name) {
 		std::cout << "\n2.5b " << tree_name << " - Find and splay twice:\n";
+		std::cout << "\n2.5b " << tree_name << " - Find and splay twice:\n";
 
 		size_t n = all_data.size();
 		size_t search_count = n / 10;  // 10% от общего количества
@@ -516,7 +519,7 @@ private:
 			auto start = std::chrono::high_resolution_clock::now();
 			size_t found_count = 0;
 			for (const auto& key : search_keys) {
-				if (tree.find_and_splay(key)) {
+				if (tree.find_and_update(key)) {
 					++found_count;
 				}
 			}
@@ -584,13 +587,13 @@ private:
 		std::cout << "\n2.5c " << tree_name << " - Warmup test:\n";
 		// 1. Прогрев
 		for (int i = 0; i < warmup_searches; i++) {
-			tree.find_and_splay(rand() % size);
+			tree.find_and_update(rand() % size);
 		}
 
 		// 2. Измерение на прогретом дереве
 		auto start = std::chrono::high_resolution_clock::now();
 		for (int i = 0; i < measure_searches; i++) {
-			tree.find_and_splay(rand() % size);
+			tree.find_and_update(rand() % size);
 		}
 		auto end = std::chrono::high_resolution_clock::now();
 		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);

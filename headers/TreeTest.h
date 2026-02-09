@@ -435,8 +435,8 @@ private:
 
 		for (int i = 0; i != data.size(); ++i) {			
 			probs4.push_back(1.0 / (i + 1)); // Зипф
-		}		
-
+		}				
+		
 		auto start = std::chrono::high_resolution_clock::now();
 		Tree tree(data, probs4);
 

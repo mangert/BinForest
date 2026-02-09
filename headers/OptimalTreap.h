@@ -52,8 +52,7 @@ public:
 
 		// Увеличиваем счётчик и обновляем приоритет
 		void record_access() {
-			/*std::cout << "[DEBUG] record_access: count=" << access_count
-				<< ", будет priority=" << (base_priority + 50.0 * std::log(1.0 + access_count)) << "\n";*/
+			
 			++access_count;
 			update_priority();
 		}
@@ -134,17 +133,10 @@ public:
 	// Non-const версия с обновлением статистики
 	bool find_and_update(const T& key) {
 		Node* node = find_node(key);
-		if (node) {
-			/*std::cout << "[DEBUG] Найден ключ " << key
-				<< ", access_count до: " << node->access_count
-				<< ", priority до: " << node->priority << "\n";*/
+		if (node) {			
 
 			node->record_access();
 
-			/*std::cout << "[DEBUG] После record_access: "
-				<< "access_count: " << node->access_count
-				<< ", priority: " << node->priority << "\n";*/
-			
 			root = bubble_up_by_split_merge(std::move(root), key);
 
 			return true;
@@ -625,8 +617,7 @@ protected:
 		}
 	}	
 
-//protected:
-public:
+protected:
 	std::unique_ptr<Node> root = nullptr;
 	size_t node_count = 0;
 

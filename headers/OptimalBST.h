@@ -1,4 +1,4 @@
-#pragma once
+п»ї#pragma once
 #include <iostream>
 #include <memory>
 #include <concepts>
@@ -10,7 +10,12 @@
 #include <vector>
 #include <stdexcept>
 
-template <std::totally_ordered T>
+
+/**
+ * @tparam MaxSize РњР°РєСЃРёРјР°Р»СЊРЅРѕРµ РєРѕР»РёС‡РµСЃС‚РІРѕ СЌР»РµРјРµРЅС‚РѕРІ
+ * WARNING: Memory usage is O(MaxSizeВІ)
+ */
+template <std::totally_ordered T, int MAX_SIZE = 10000>
 class OptimalBST : public ITree<T> {
 
 protected:
@@ -23,11 +28,11 @@ protected:
             : key(k), left(nullptr), right(nullptr) {
         }
 
-        // Запрещаем копирование
+        // Р—Р°РїСЂРµС‰Р°РµРј РєРѕРїРёСЂРѕРІР°РЅРёРµ
         Node(const Node&) = delete;
         Node& operator=(const Node&) = delete;
 
-        // Разрешаем перемещение
+        // Р Р°Р·СЂРµС€Р°РµРј РїРµСЂРµРјРµС‰РµРЅРёРµ
         Node(Node&&) noexcept = default;
         Node& operator=(Node&&) noexcept = default;
 
@@ -35,11 +40,17 @@ protected:
     };
 
 public:
-    //--------- Конструкторы -------//
+    //--------- РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂС‹ -------//
 
-    // Основной конструктор для построения оптимального дерева
+    // РћСЃРЅРѕРІРЅРѕР№ РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РґР»СЏ РїРѕСЃС‚СЂРѕРµРЅРёСЏ РѕРїС‚РёРјР°Р»СЊРЅРѕРіРѕ РґРµСЂРµРІР°
     OptimalBST(const std::vector<T>& keys,
-        const std::vector<double>& key_probs) {
+        const std::vector<double>& key_probs) {        
+
+        if (keys.size() > MAX_SIZE) {
+            throw std::runtime_error(
+                "OptimalBST supports up to " + std::to_string(MAX_SIZE) +
+                " elements due to O(n^2) memory requirements");
+        }
 
         if (keys.empty()) return;
 
@@ -48,38 +59,38 @@ public:
                 "Keys and probabilities must have same size");
         }
 
-        // Копируем данные (чтобы не менять входные параметры)
+        // РљРѕРїРёСЂСѓРµРј РґР°РЅРЅС‹Рµ (С‡С‚РѕР±С‹ РЅРµ РјРµРЅСЏС‚СЊ РІС…РѕРґРЅС‹Рµ РїР°СЂР°РјРµС‚СЂС‹)
         std::vector<T> sorted_keys = keys;
         std::vector<double> sorted_probs = key_probs;
 
-        // 1. Сортируем если нужно
+        // 1. РЎРѕСЂС‚РёСЂСѓРµРј РµСЃР»Рё РЅСѓР¶РЅРѕ
         if (!is_sorted(sorted_keys)) {
             sort_keys_with_probs(sorted_keys, sorted_probs);
         }
 
-        // 2. Нормализуем вероятности
+        // 2. РќРѕСЂРјР°Р»РёР·СѓРµРј РІРµСЂРѕСЏС‚РЅРѕСЃС‚Рё
         normalize_probabilities(sorted_probs);
 
 #ifdef DEBUG
-        std::cout << "\nВероятности после нормализации:" << std::endl;
+        std::cout << "\nР’РµСЂРѕСЏС‚РЅРѕСЃС‚Рё РїРѕСЃР»Рµ РЅРѕСЂРјР°Р»РёР·Р°С†РёРё:" << std::endl;
         for (size_t i = 0; i < sorted_probs.size(); ++i) {
             std::cout << "p[" << i << "] = " << sorted_probs[i] << std::endl;
         }
 #endif // DEBUG
 
-        // 3. Создаем q = нули (упрощенный вариант)
+        // 3. РЎРѕР·РґР°РµРј q = РЅСѓР»Рё (СѓРїСЂРѕС‰РµРЅРЅС‹Р№ РІР°СЂРёР°РЅС‚)
         std::vector<double> q(sorted_keys.size() + 1, 0.0);
 
-        // 4. Строим дерево
+        // 4. РЎС‚СЂРѕРёРј РґРµСЂРµРІРѕ
         build_optimal_bst(sorted_keys, sorted_probs, q);
     }
 
-    // Конструктор копирования
+    // РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєРѕРїРёСЂРѕРІР°РЅРёСЏ
     OptimalBST(const OptimalBST& other)
         : root(clone(other.root.get())), node_count(other.node_count) {
     }
 
-    // Конструктор перемещения
+    // РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РїРµСЂРµРјРµС‰РµРЅРёСЏ
     OptimalBST(OptimalBST&& other) noexcept
         : root(std::move(other.root)), node_count(other.node_count) {
         other.node_count = 0;
@@ -89,7 +100,7 @@ public:
         clear();
     }
 
-    // Оператор копирующего присваивания
+    // РћРїРµСЂР°С‚РѕСЂ РєРѕРїРёСЂСѓСЋС‰РµРіРѕ РїСЂРёСЃРІР°РёРІР°РЅРёСЏ
     OptimalBST& operator=(const OptimalBST& other) {
         if (this != &other) {
             root = clone(other.root.get());
@@ -98,7 +109,7 @@ public:
         return *this;
     }
 
-    // Оператор перемещающего присваивания
+    // РћРїРµСЂР°С‚РѕСЂ РїРµСЂРµРјРµС‰Р°СЋС‰РµРіРѕ РїСЂРёСЃРІР°РёРІР°РЅРёСЏ
     OptimalBST& operator=(OptimalBST&& other) noexcept {
         if (this != &other) {
             clear();
@@ -109,7 +120,7 @@ public:
         return *this;
     }
 
-    //--------- Основные операции -------//
+    //--------- РћСЃРЅРѕРІРЅС‹Рµ РѕРїРµСЂР°С†РёРё -------//
 
     void insert(const T& key) override {
 #ifdef DEBUG
@@ -162,7 +173,7 @@ public:
         node_count = 0;
     }
 
-    //--------- Состояние -------//
+    //--------- РЎРѕСЃС‚РѕСЏРЅРёРµ -------//
 
     bool empty() const override {
         return !root;
@@ -172,7 +183,7 @@ public:
         return node_count;
     }
 
-    // --------- Публичные методы обходов --------- //
+    // --------- РџСѓР±Р»РёС‡РЅС‹Рµ РјРµС‚РѕРґС‹ РѕР±С…РѕРґРѕРІ --------- //
 
     std::vector<T> inorder() const override {
         std::vector<T> result;
@@ -210,7 +221,7 @@ public:
         return result;
     }
 
-    // --------- Visitor методы --------- //    
+    // --------- Visitor РјРµС‚РѕРґС‹ --------- //    
 
     void visit_inorder(std::function<void(const T&)> visitor) const override {
         if (visitor) inorder_impl(visitor);
@@ -228,7 +239,7 @@ public:
         if (visitor) level_order_impl(visitor);
     }
 
-    //--------- Метрики -------//
+    //--------- РњРµС‚СЂРёРєРё -------//
 
     int height() const override {
         if (!root) return -1;
@@ -251,13 +262,13 @@ public:
         return height;
     }
 
-    //--------- Дополнительные методы для OBST ---------//
+    //--------- Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ РјРµС‚РѕРґС‹ РґР»СЏ OBST ---------//
 
     double get_expected_cost() const {        
         return expected_cost_;
     }
 
-    //--------- Печать -------//
+    //--------- РџРµС‡Р°С‚СЊ -------//
 
     void print(std::ostream& os = std::cout) const override {
         if (!root) {
@@ -297,9 +308,9 @@ public:
     }
 
 protected:
-    //вспомогательные функции для построения дерева    
+    //РІСЃРїРѕРјРѕРіР°С‚РµР»СЊРЅС‹Рµ С„СѓРЅРєС†РёРё РґР»СЏ РїРѕСЃС‚СЂРѕРµРЅРёСЏ РґРµСЂРµРІР°    
     
-    // Функция для сортировки ключей с вероятностями
+    // Р¤СѓРЅРєС†РёСЏ РґР»СЏ СЃРѕСЂС‚РёСЂРѕРІРєРё РєР»СЋС‡РµР№ СЃ РІРµСЂРѕСЏС‚РЅРѕСЃС‚СЏРјРё
     static void sort_keys_with_probs(std::vector<T>& keys,
 		std::vector<double>& probs) {
 		
@@ -318,22 +329,22 @@ protected:
 		}
 	}
 
-    // Функция для проверки, отсортированы ли ключи
+    // Р¤СѓРЅРєС†РёСЏ РґР»СЏ РїСЂРѕРІРµСЂРєРё, РѕС‚СЃРѕСЂС‚РёСЂРѕРІР°РЅС‹ Р»Рё РєР»СЋС‡Рё
     static bool is_sorted(const std::vector<T>& keys) {
         for (size_t i = 1; i < keys.size(); ++i) {
-            if (keys[i] < keys[i - 1]) {  // Используем < для strict ordering
+            if (keys[i] < keys[i - 1]) {  // РСЃРїРѕР»СЊР·СѓРµРј < РґР»СЏ strict ordering
                 return false;
             }
         }
         return true;
     }
 
-    // Функция для нормализации вероятностей
+    // Р¤СѓРЅРєС†РёСЏ РґР»СЏ РЅРѕСЂРјР°Р»РёР·Р°С†РёРё РІРµСЂРѕСЏС‚РЅРѕСЃС‚РµР№
     static void normalize_probabilities(std::vector<double>& probs) {
         double sum = std::accumulate(probs.begin(), probs.end(), 0.0);
 
         if (std::abs(sum - 1.0) > 1e-9) {
-            // Если сумма близка к 0, делаем равномерное распределение
+            // Р•СЃР»Рё СЃСѓРјРјР° Р±Р»РёР·РєР° Рє 0, РґРµР»Р°РµРј СЂР°РІРЅРѕРјРµСЂРЅРѕРµ СЂР°СЃРїСЂРµРґРµР»РµРЅРёРµ
             if (sum < 1e-9) {
                 std::fill(probs.begin(), probs.end(), 1.0 / probs.size());
             }
@@ -345,7 +356,7 @@ protected:
         }
     }
 
-//функция построения дерева    
+//С„СѓРЅРєС†РёСЏ РїРѕСЃС‚СЂРѕРµРЅРёСЏ РґРµСЂРµРІР°    
     void build_optimal_bst(const std::vector<T>& keys,
         const std::vector<double>& p,
         const std::vector<double>& q) {
@@ -358,16 +369,16 @@ protected:
             return;
         }
 
-        // Проверка размеров (для безопасности)
+        // РџСЂРѕРІРµСЂРєР° СЂР°Р·РјРµСЂРѕРІ (РґР»СЏ Р±РµР·РѕРїР°СЃРЅРѕСЃС‚Рё)
         if (p.size() != n || q.size() != n + 1) {
             throw std::invalid_argument("Invalid probability arrays size");
         }
 
-#ifdef DEBUG // Проверка сортированности (assert для отладки)
+#ifdef DEBUG // РџСЂРѕРІРµСЂРєР° СЃРѕСЂС‚РёСЂРѕРІР°РЅРЅРѕСЃС‚Рё (assert РґР»СЏ РѕС‚Р»Р°РґРєРё)
         assert(is_sorted(keys) && "Keys must be sorted in build_optimal_bst");
 #endif // DEBUG
             
-        // Таблицы ДП
+        // РўР°Р±Р»РёС†С‹ Р”Рџ
         std::vector<std::vector<double>> e(n + 2,
             std::vector<double>(n + 1, 0.0));
         std::vector<std::vector<double>> w(n + 2,
@@ -377,25 +388,25 @@ protected:
 
         constexpr double INF = std::numeric_limits<double>::max();
 
-        // 1. Инициализация (q[i-1] = 0 в упрощенном варианте)
+        // 1. РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ (q[i-1] = 0 РІ СѓРїСЂРѕС‰РµРЅРЅРѕРј РІР°СЂРёР°РЅС‚Рµ)
         for (int i = 1; i <= n + 1; ++i) {
             e[i][i - 1] = q[i - 1];
             w[i][i - 1] = q[i - 1];
         }
 
-        // 2. Основной цикл ДП
+        // 2. РћСЃРЅРѕРІРЅРѕР№ С†РёРєР» Р”Рџ
         for (int length = 1; length <= n; ++length) {
             for (int i = 1; i <= n - length + 1; ++i) {
                 int j = i + length - 1;
 
-                // w[i][j] = сумма вероятностей от i до j
-                w[i][j] = w[i][j - 1] + p[j - 1]; // p[j-1] т.к. p 0-based
+                // w[i][j] = СЃСѓРјРјР° РІРµСЂРѕСЏС‚РЅРѕСЃС‚РµР№ РѕС‚ i РґРѕ j
+                w[i][j] = w[i][j - 1] + p[j - 1]; // p[j-1] С‚.Рє. p 0-based
 
-                // Границы поиска корня с оптимизацией Кнута
+                // Р“СЂР°РЅРёС†С‹ РїРѕРёСЃРєР° РєРѕСЂРЅСЏ СЃ РѕРїС‚РёРјРёР·Р°С†РёРµР№ РљРЅСѓС‚Р°
                 int left = (i <= j - 1) ? root_table[i][j - 1] : i;
                 int right = (i + 1 <= j) ? root_table[i + 1][j] : j;
 
-                // Ищем оптимальный корень
+                // РС‰РµРј РѕРїС‚РёРјР°Р»СЊРЅС‹Р№ РєРѕСЂРµРЅСЊ
                 e[i][j] = INF;
                 for (int r = left; r <= right; ++r) {
                     double cost = e[i][r - 1] + e[r + 1][j] + w[i][j];
@@ -407,11 +418,11 @@ protected:
             }
         }
 
-        // 3. Сохраняем минимальную ожидаемую стоимость
+        // 3. РЎРѕС…СЂР°РЅСЏРµРј РјРёРЅРёРјР°Р»СЊРЅСѓСЋ РѕР¶РёРґР°РµРјСѓСЋ СЃС‚РѕРёРјРѕСЃС‚СЊ
         expected_cost_ = e[1][n];
 
 #ifdef DEBUG
-        std::cout << "\nТаблица root:" << std::endl;
+        std::cout << "\nРўР°Р±Р»РёС†Р° root:" << std::endl;
         for (int i = 1; i <= n; ++i) {
             for (int j = 1; j <= n; ++j) {
                 if (i <= j) {
@@ -423,17 +434,17 @@ protected:
             }
             std::cout << std::endl;
         }
-        std::cout << "\nПравильные стоимости для разных корней:" << std::endl;
+        std::cout << "\nРџСЂР°РІРёР»СЊРЅС‹Рµ СЃС‚РѕРёРјРѕСЃС‚Рё РґР»СЏ СЂР°Р·РЅС‹С… РєРѕСЂРЅРµР№:" << std::endl;
         for (int r = 1; r <= n; ++r) {
-            // Правильный расчет: стоимость левого + стоимость правого + сумма вероятностей
+            // РџСЂР°РІРёР»СЊРЅС‹Р№ СЂР°СЃС‡РµС‚: СЃС‚РѕРёРјРѕСЃС‚СЊ Р»РµРІРѕРіРѕ + СЃС‚РѕРёРјРѕСЃС‚СЊ РїСЂР°РІРѕРіРѕ + СЃСѓРјРјР° РІРµСЂРѕСЏС‚РЅРѕСЃС‚РµР№
             double cost = e[1][r - 1] + e[r + 1][n] + w[1][n];
-            std::cout << "Корень " << r << " (" << keys[r - 1] << "): "
+            std::cout << "РљРѕСЂРµРЅСЊ " << r << " (" << keys[r - 1] << "): "
                 << cost << " = " << e[1][r - 1] << " + " << e[r + 1][n]
                 << " + " << w[1][n] << std::endl;
         }
 
-        // таблицу w
-        std::cout << "\nТаблица w[i][j] (суммы вероятностей):" << std::endl;
+        // С‚Р°Р±Р»РёС†Сѓ w
+        std::cout << "\nРўР°Р±Р»РёС†Р° w[i][j] (СЃСѓРјРјС‹ РІРµСЂРѕСЏС‚РЅРѕСЃС‚РµР№):" << std::endl;
         for (int i = 1; i <= n; ++i) {
             for (int j = 1; j <= n; ++j) {
                 if (i <= j) {
@@ -444,12 +455,12 @@ protected:
         }
 #endif //DEBUG
 
-        // 4. Строим дерево
+        // 4. РЎС‚СЂРѕРёРј РґРµСЂРµРІРѕ
         root = build_tree_from_roots(keys, root_table, 1, n);
         node_count = n;
     }
 
-    //вспомогательная рекурсивная функция построения поддерева
+    //РІСЃРїРѕРјРѕРіР°С‚РµР»СЊРЅР°СЏ СЂРµРєСѓСЂСЃРёРІРЅР°СЏ С„СѓРЅРєС†РёСЏ РїРѕСЃС‚СЂРѕРµРЅРёСЏ РїРѕРґРґРµСЂРµРІР°
     std::unique_ptr<Node> build_tree_from_roots(
         const std::vector<T>& keys,
         const std::vector<std::vector<int>>& root_table,
@@ -457,18 +468,18 @@ protected:
 
         if (i > j) return nullptr;
 
-        int root_idx = root_table[i][j];  // 1-based индекс в keys
-        // keys 0-based, поэтому keys[root_idx-1]
+        int root_idx = root_table[i][j];  // 1-based РёРЅРґРµРєСЃ РІ keys
+        // keys 0-based, РїРѕСЌС‚РѕРјСѓ keys[root_idx-1]
         auto node = std::make_unique<Node>(keys[root_idx - 1]);
 
-        // Рекурсивно строим левое и правое поддеревья
+        // Р РµРєСѓСЂСЃРёРІРЅРѕ СЃС‚СЂРѕРёРј Р»РµРІРѕРµ Рё РїСЂР°РІРѕРµ РїРѕРґРґРµСЂРµРІСЊСЏ
         node->left = build_tree_from_roots(keys, root_table, i, root_idx - 1);
         node->right = build_tree_from_roots(keys, root_table, root_idx + 1, j);
 
         return node;
     }
 
-	// --------- Шаблонные реализации обходов --------- //
+	// --------- РЁР°Р±Р»РѕРЅРЅС‹Рµ СЂРµР°Р»РёР·Р°С†РёРё РѕР±С…РѕРґРѕРІ --------- //
 	template<typename Action>
 	void inorder_impl(Action&& action) const {
 		if (!root) return;
@@ -484,7 +495,7 @@ protected:
 
 			current = stack.top();
 			stack.pop();
-			action(current->key);  // Вызываем action
+			action(current->key);  // Р’С‹Р·С‹РІР°РµРј action
 
 			current = current->right.get();
 		}
@@ -511,7 +522,7 @@ protected:
 	void postorder_impl(Action&& action) const {
 		if (!root) return;
 
-		// Два стека
+		// Р”РІР° СЃС‚РµРєР°
 		std::stack<const Node*> stack1, stack2;
 		stack1.push(root.get());
 
@@ -539,7 +550,7 @@ protected:
 
 		while (!current_lvl.empty()) {
 			std::vector<const Node*> next_lvl;
-			next_lvl.reserve(current_lvl.size() * 2);  // Оптимизация!
+			next_lvl.reserve(current_lvl.size() * 2);  // РћРїС‚РёРјРёР·Р°С†РёСЏ!
 
 			for (const Node* node : current_lvl) {
 				action(node->key);
@@ -552,16 +563,16 @@ protected:
 		}
 	}
 
-	//-------------- Общие служебные функции ---------//
-	//служебная функция копирования дерева (итеративная)
+	//-------------- РћР±С‰РёРµ СЃР»СѓР¶РµР±РЅС‹Рµ С„СѓРЅРєС†РёРё ---------//
+	//СЃР»СѓР¶РµР±РЅР°СЏ С„СѓРЅРєС†РёСЏ РєРѕРїРёСЂРѕРІР°РЅРёСЏ РґРµСЂРµРІР° (РёС‚РµСЂР°С‚РёРІРЅР°СЏ)
 	static std::unique_ptr<Node> clone(const Node* source_root) {
 
 		if (!source_root) return nullptr;
 
 		auto new_root = std::make_unique<Node>(source_root->key);
 
-		std::queue<const Node*> src;  // Оригинал
-		std::queue<Node*> dst;        // Копия
+		std::queue<const Node*> src;  // РћСЂРёРіРёРЅР°Р»
+		std::queue<Node*> dst;        // РљРѕРїРёСЏ
 
 		src.push(source_root);
 		dst.push(new_root.get());
@@ -572,14 +583,14 @@ protected:
 			src.pop();
 			dst.pop();
 
-			// Левый ребeнок
+			// Р›РµРІС‹Р№ СЂРµР±eРЅРѕРє
 			if (src_node->left) {
 				dst_node->left = std::make_unique<Node>(src_node->left->key);
 				src.push(src_node->left.get());
 				dst.push(dst_node->left.get());
 			}
 
-			// Правый ребeнок
+			// РџСЂР°РІС‹Р№ СЂРµР±eРЅРѕРє
 			if (src_node->right) {
 				dst_node->right = std::make_unique<Node>(src_node->right->key);
 				src.push(src_node->right.get());

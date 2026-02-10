@@ -1,4 +1,4 @@
-#pragma once
+п»ї#pragma once
 #include <iostream>
 #include <memory>
 #include <concepts>
@@ -13,51 +13,51 @@ template <std::totally_ordered T>
 class OptimalTreap : public ITree<T> {
 
 public:
-	struct Node { //структура для узла 
+	struct Node { //СЃС‚СЂСѓРєС‚СѓСЂР° РґР»СЏ СѓР·Р»Р° 
 		T key;			
 		std::unique_ptr<Node> left;
 		std::unique_ptr<Node> right;		
 		double base_priority;
 		double priority;
-		size_t access_count = 0;   // Счётчик обращений	
+		size_t access_count = 0;   // РЎС‡С‘С‚С‡РёРє РѕР±СЂР°С‰РµРЅРёР№	
 		
-		//Конструкторы и присваивание
+		//РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂС‹ Рё РїСЂРёСЃРІР°РёРІР°РЅРёРµ
 		explicit Node(const T& k)
 			: key(k), left(nullptr), right(nullptr), base_priority(generate_base_priority()) {
 			priority = base_priority;			
 		}
 
-		//Копирование
+		//РљРѕРїРёСЂРѕРІР°РЅРёРµ
 		Node(const Node&) = delete;
 		Node& operator=(const Node&) = delete;
 
-		//Перемещение
+		//РџРµСЂРµРјРµС‰РµРЅРёРµ
 		Node(Node&& other) noexcept = default;
 		Node& operator=(Node&& other) noexcept = default;
 
 		~Node() = default;
 
-		//генератор для базового приоритета
+		//РіРµРЅРµСЂР°С‚РѕСЂ РґР»СЏ Р±Р°Р·РѕРІРѕРіРѕ РїСЂРёРѕСЂРёС‚РµС‚Р°
 		static double generate_base_priority() {
 			static std::mt19937 generator(std::random_device{}());
 			static std::uniform_real_distribution<double> distribution(0.0, 0.1);
 			return 1.0 + distribution(generator);  // [1.0, 1.1)
 		}
 
-		// Обновляем приоритет при изменении access_count
+		// РћР±РЅРѕРІР»СЏРµРј РїСЂРёРѕСЂРёС‚РµС‚ РїСЂРё РёР·РјРµРЅРµРЅРёРё access_count
 		void update_priority() {			
 			
 			priority = base_priority + 50.0 * std::log(1.0 + access_count);
 		}
 
-		// Увеличиваем счётчик и обновляем приоритет
+		// РЈРІРµР»РёС‡РёРІР°РµРј СЃС‡С‘С‚С‡РёРє Рё РѕР±РЅРѕРІР»СЏРµРј РїСЂРёРѕСЂРёС‚РµС‚
 		void record_access() {
 			
 			++access_count;
 			update_priority();
 		}
 
-		// Для отладки
+		// Р”Р»СЏ РѕС‚Р»Р°РґРєРё
 #ifdef DEBUG
 		void debug_print() const {
 			std::cout << "Node " << key
@@ -70,16 +70,16 @@ public:
 	};
 
 public:
-	//--------- конструкторы и операторы присваивания -------//
+	//--------- РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂС‹ Рё РѕРїРµСЂР°С‚РѕСЂС‹ РїСЂРёСЃРІР°РёРІР°РЅРёСЏ -------//
 
-	OptimalTreap() = default;  // пустое дерево
+	OptimalTreap() = default;  // РїСѓСЃС‚РѕРµ РґРµСЂРµРІРѕ
 
 	OptimalTreap(T key) : root(std::make_unique<Node>(Node(key))), node_count(1) {};
 
-	// Конструктор копирования
+	// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєРѕРїРёСЂРѕРІР°РЅРёСЏ
 	OptimalTreap(const OptimalTreap& other) : root(clone(other.root.get())), node_count(other.node_count) {};
 
-	// Конструктор перемещения
+	// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РїРµСЂРµРјРµС‰РµРЅРёСЏ
 	OptimalTreap(OptimalTreap&& other) noexcept
 		: root(std::move(other.root)), node_count(other.node_count) {
 		other.root = nullptr;
@@ -89,7 +89,7 @@ public:
 		clear();
 	};
 
-	// Оператор копирующего присваивания
+	// РћРїРµСЂР°С‚РѕСЂ РєРѕРїРёСЂСѓСЋС‰РµРіРѕ РїСЂРёСЃРІР°РёРІР°РЅРёСЏ
 	OptimalTreap& operator=(const OptimalTreap& other) {
 		if (this != &other) {
 			root = clone(other.root.get());
@@ -98,7 +98,7 @@ public:
 		return *this;
 	};
 
-	// Оператор перемещающего присваивания
+	// РћРїРµСЂР°С‚РѕСЂ РїРµСЂРµРјРµС‰Р°СЋС‰РµРіРѕ РїСЂРёСЃРІР°РёРІР°РЅРёСЏ
 	OptimalTreap& operator=(OptimalTreap&& other) noexcept {
 		clear();
 		root = std::move(other.root);
@@ -108,29 +108,29 @@ public:
 		return *this;
 	};
 
-	//--------- Основные операции -------//
-	//вставка
+	//--------- РћСЃРЅРѕРІРЅС‹Рµ РѕРїРµСЂР°С†РёРё -------//
+	//РІСЃС‚Р°РІРєР°
 	void insert(const T& key) override {
-		// Сначала проверяем, есть ли уже
+		// РЎРЅР°С‡Р°Р»Р° РїСЂРѕРІРµСЂСЏРµРј, РµСЃС‚СЊ Р»Рё СѓР¶Рµ
 		Node* existing = find_node(key); 
 
 		if (existing) {
-			// Уже есть — просто обновляем статистику
+			// РЈР¶Рµ РµСЃС‚СЊ вЂ” РїСЂРѕСЃС‚Рѕ РѕР±РЅРѕРІР»СЏРµРј СЃС‚Р°С‚РёСЃС‚РёРєСѓ
 			existing->record_access();			
 		}
 		else {
-			// Нет — вставляем
+			// РќРµС‚ вЂ” РІСЃС‚Р°РІР»СЏРµРј
 			root = insert_impl(std::move(root), key);			
 		}		
 	};
 
-	//поиск элемента
+	//РїРѕРёСЃРє СЌР»РµРјРµРЅС‚Р°
 	bool contains(const T& key) const override {
 		const Node* node = find_node(key);
 		return node != nullptr;
 	}
 
-	// Non-const версия с обновлением статистики
+	// Non-const РІРµСЂСЃРёСЏ СЃ РѕР±РЅРѕРІР»РµРЅРёРµРј СЃС‚Р°С‚РёСЃС‚РёРєРё
 	bool find_and_update(const T& key) {
 		Node* node = find_node(key);
 		if (node) {			
@@ -143,23 +143,23 @@ public:
 		}
 		return false;
 	}
-	//удаление элемента
+	//СѓРґР°Р»РµРЅРёРµ СЌР»РµРјРµРЅС‚Р°
 	void remove(const T& key) override {
 		root = remove_impl(std::move(root), key);		
 	}
 
-	//очистка дерева (итеративно)
+	//РѕС‡РёСЃС‚РєР° РґРµСЂРµРІР° (РёС‚РµСЂР°С‚РёРІРЅРѕ)
 	void clear() override {
 		if (!root) return;
 
 		std::stack<std::unique_ptr<Node>> node_stack;
-		node_stack.push(std::move(root));  // Перемещаем владение в стек
+		node_stack.push(std::move(root));  // РџРµСЂРµРјРµС‰Р°РµРј РІР»Р°РґРµРЅРёРµ РІ СЃС‚РµРє
 
 		while (!node_stack.empty()) {
 			auto node = std::move(node_stack.top());
 			node_stack.pop();
 
-			// Перемещаем детей в стек перед удалением node
+			// РџРµСЂРµРјРµС‰Р°РµРј РґРµС‚РµР№ РІ СЃС‚РµРє РїРµСЂРµРґ СѓРґР°Р»РµРЅРёРµРј node
 			if (node->left) {
 				node_stack.push(std::move(node->left));
 			}
@@ -171,13 +171,13 @@ public:
 		node_count = 0;
 	}
 
-	//--------- Состояние -------//
-	//проверка на пустоту
+	//--------- РЎРѕСЃС‚РѕСЏРЅРёРµ -------//
+	//РїСЂРѕРІРµСЂРєР° РЅР° РїСѓСЃС‚РѕС‚Сѓ
 	bool empty() const override {
 		return !root;
 	};
 
-	// --------- Публичные методы обходов --------- //
+	// --------- РџСѓР±Р»РёС‡РЅС‹Рµ РјРµС‚РѕРґС‹ РѕР±С…РѕРґРѕРІ --------- //
 	std::vector<T> inorder() const override {
 		std::vector<T> result;
 		if (root) {
@@ -214,7 +214,7 @@ public:
 		return result;
 	}
 
-	// --------- Visitor методы  --------- //	
+	// --------- Visitor РјРµС‚РѕРґС‹  --------- //	
 	void visit_inorder(std::function<void(const T&)> visitor) const override {
 		if (visitor) inorder_impl(visitor);
 	}
@@ -228,13 +228,13 @@ public:
 		if (visitor) level_order_impl(visitor);
 	}
 
-	//--------- Метрики -------//
-	//размер
+	//--------- РњРµС‚СЂРёРєРё -------//
+	//СЂР°Р·РјРµСЂ
 	size_t size() const override {
 		return node_count;
 	};
 
-	//высота	
+	//РІС‹СЃРѕС‚Р°	
 	int height() const override {
 
 		if (!root) return -1;
@@ -257,7 +257,7 @@ public:
 		return height;
 	}
 
-	//--------- Печать -------//
+	//--------- РџРµС‡Р°С‚СЊ -------//
 	void print(std::ostream& os = std::cout) const override {
 
 		if (!root) {
@@ -279,7 +279,7 @@ public:
 
 				os << current->key;
 
-				// Показываем связи
+				// РџРѕРєР°Р·С‹РІР°РµРј СЃРІСЏР·Рё
 				if (current->left || current->right) {
 					os << "[";
 					if (current->left) os << "L:" << current->left->key;
@@ -298,7 +298,7 @@ public:
 	}	
 
 protected:
-	//======== вспомогательные функции split и merge =====/
+	//======== РІСЃРїРѕРјРѕРіР°С‚РµР»СЊРЅС‹Рµ С„СѓРЅРєС†РёРё split Рё merge =====/
 	static std::pair<std::unique_ptr<Node>, std::unique_ptr<Node>>
 		split(std::unique_ptr<Node> node, const T& key) {
 
@@ -306,82 +306,82 @@ protected:
 			return { nullptr, nullptr };
 		}
 
-		if (node->key < key) { // Разделяем правое поддерево			
+		if (node->key < key) { // Р Р°Р·РґРµР»СЏРµРј РїСЂР°РІРѕРµ РїРѕРґРґРµСЂРµРІРѕ			
 
 			auto [left_of_right, right] = split(std::move(node->right), key);
 
-			// Присоединяем left_of_right как правое поддерево текущего узла
+			// РџСЂРёСЃРѕРµРґРёРЅСЏРµРј left_of_right РєР°Рє РїСЂР°РІРѕРµ РїРѕРґРґРµСЂРµРІРѕ С‚РµРєСѓС‰РµРіРѕ СѓР·Р»Р°
 			node->right = std::move(left_of_right);
 
-			// Текущий узел (с поддеревьями) + то, что получилось справа
+			// РўРµРєСѓС‰РёР№ СѓР·РµР» (СЃ РїРѕРґРґРµСЂРµРІСЊСЏРјРё) + С‚Рѕ, С‡С‚Рѕ РїРѕР»СѓС‡РёР»РѕСЃСЊ СЃРїСЂР°РІР°
 			return { std::move(node), std::move(right) };
 
 		}
-		else { // Разделяем левое поддерево
+		else { // Р Р°Р·РґРµР»СЏРµРј Р»РµРІРѕРµ РїРѕРґРґРµСЂРµРІРѕ
 
 			auto [left, right_of_left] = split(std::move(node->left), key);
 
-			// Присоединяем right_of_left как левое поддерево текущего узла
+			// РџСЂРёСЃРѕРµРґРёРЅСЏРµРј right_of_left РєР°Рє Р»РµРІРѕРµ РїРѕРґРґРµСЂРµРІРѕ С‚РµРєСѓС‰РµРіРѕ СѓР·Р»Р°
 			node->left = std::move(right_of_left);
 
-			// То, что получилось слева + текущий узел (с поддеревьями)
+			// РўРѕ, С‡С‚Рѕ РїРѕР»СѓС‡РёР»РѕСЃСЊ СЃР»РµРІР° + С‚РµРєСѓС‰РёР№ СѓР·РµР» (СЃ РїРѕРґРґРµСЂРµРІСЊСЏРјРё)
 			return { std::move(left), std::move(node) };
 		}
 	}
 
 	static std::unique_ptr<Node> merge(std::unique_ptr<Node> left,
 		std::unique_ptr<Node> right) {
-		// Базовые случаи
+		// Р‘Р°Р·РѕРІС‹Рµ СЃР»СѓС‡Р°Рё
 		if (!left) return right;
 		if (!right) return left;
 
-		// Сравниваем приоритеты (свойство кучи)
-		if (left->priority > right->priority) { // left становится корнем, его приоритет больше
+		// РЎСЂР°РІРЅРёРІР°РµРј РїСЂРёРѕСЂРёС‚РµС‚С‹ (СЃРІРѕР№СЃС‚РІРѕ РєСѓС‡Рё)
+		if (left->priority > right->priority) { // left СЃС‚Р°РЅРѕРІРёС‚СЃСЏ РєРѕСЂРЅРµРј, РµРіРѕ РїСЂРёРѕСЂРёС‚РµС‚ Р±РѕР»СЊС€Рµ
 
-			// Рекурсивно мержим правое поддерево left с right
+			// Р РµРєСѓСЂСЃРёРІРЅРѕ РјРµСЂР¶РёРј РїСЂР°РІРѕРµ РїРѕРґРґРµСЂРµРІРѕ left СЃ right
 			left->right = merge(std::move(left->right), std::move(right));
-			return left;  // left - новый корень
+			return left;  // left - РЅРѕРІС‹Р№ РєРѕСЂРµРЅСЊ
 
 		}
-		else { // right становится корнем, его приоритет больше или равен
+		else { // right СЃС‚Р°РЅРѕРІРёС‚СЃСЏ РєРѕСЂРЅРµРј, РµРіРѕ РїСЂРёРѕСЂРёС‚РµС‚ Р±РѕР»СЊС€Рµ РёР»Рё СЂР°РІРµРЅ
 
-			// Рекурсивно мержим left с левым поддеревом right
+			// Р РµРєСѓСЂСЃРёРІРЅРѕ РјРµСЂР¶РёРј left СЃ Р»РµРІС‹Рј РїРѕРґРґРµСЂРµРІРѕРј right
 			right->left = merge(std::move(left), std::move(right->left));
-			return right;  // right - новый корень
+			return right;  // right - РЅРѕРІС‹Р№ РєРѕСЂРµРЅСЊ
 		}
 	}
 
-	//функция локальной перестройки
+	//С„СѓРЅРєС†РёСЏ Р»РѕРєР°Р»СЊРЅРѕР№ РїРµСЂРµСЃС‚СЂРѕР№РєРё
 	std::unique_ptr<Node> bubble_up_by_split_merge(
 		std::unique_ptr<Node> tree, const T& key) {
 
 		if (!tree) return nullptr;
 
-		// 1. Разделяем на <key и >=key
+		// 1. Р Р°Р·РґРµР»СЏРµРј РЅР° <key Рё >=key
 		auto [left, middle_right] = split(std::move(tree), key);
 
 		if (!middle_right) {
-			// Ключа нет (но мы только что его нашли!)
+			// РљР»СЋС‡Р° РЅРµС‚ (РЅРѕ РјС‹ С‚РѕР»СЊРєРѕ С‡С‚Рѕ РµРіРѕ РЅР°С€Р»Рё!)
 			return merge(std::move(left), std::move(middle_right));
 		}
 
-		// 2. Разделяем middle_right на =key и >key
+		// 2. Р Р°Р·РґРµР»СЏРµРј middle_right РЅР° =key Рё >key
 		auto next_key = get_next_key(key);
 		auto [middle, right] = split(std::move(middle_right), next_key);
 
 		if (!middle) {
-			// Странно, но на всякий случай
+			// РЎС‚СЂР°РЅРЅРѕ, РЅРѕ РЅР° РІСЃСЏРєРёР№ СЃР»СѓС‡Р°Р№
 			return merge(std::move(left), merge(std::move(middle), std::move(right)));
 		}
 
-		// 3. middle содержит узел с key (приоритет уже обновлён в find_node)
-		// 4. Merge в правильном порядке: left + middle + right
-		//    Благодаря новому приоритету middle займёт правильное место
+		// 3. middle СЃРѕРґРµСЂР¶РёС‚ СѓР·РµР» СЃ key (РїСЂРёРѕСЂРёС‚РµС‚ СѓР¶Рµ РѕР±РЅРѕРІР»С‘РЅ РІ find_node)
+		// 4. Merge РІ РїСЂР°РІРёР»СЊРЅРѕРј РїРѕСЂСЏРґРєРµ: left + middle + right
+		//    Р‘Р»Р°РіРѕРґР°СЂСЏ РЅРѕРІРѕРјСѓ РїСЂРёРѕСЂРёС‚РµС‚Сѓ middle Р·Р°Р№РјС‘С‚ РїСЂР°РІРёР»СЊРЅРѕРµ РјРµСЃС‚Рѕ
 
 		return merge(merge(std::move(left), std::move(middle)), std::move(right));
 	}
 
-	//-------------Вспомогательные функции для поиска -------//
+	//-------------Р’СЃРїРѕРјРѕРіР°С‚РµР»СЊРЅС‹Рµ С„СѓРЅРєС†РёРё РґР»СЏ РїРѕРёСЃРєР° -------//
 	
 	Node* find_node(const T& key) {
 		Node* current = root.get();
@@ -393,10 +393,10 @@ protected:
 				current = current->right.get();
 			}
 			else {				
-				return current;  // Нашли
+				return current;  // РќР°С€Р»Рё
 			}
 		}
-		return nullptr;  // Не нашли
+		return nullptr;  // РќРµ РЅР°С€Р»Рё
 	}
 
 	Node* find_node(const T& key) const {
@@ -409,13 +409,13 @@ protected:
 				current = current->right.get();
 			}
 			else {
-				return current;  // Нашли
+				return current;  // РќР°С€Р»Рё
 			}
 		}
-		return nullptr;  // Не нашли
+		return nullptr;  // РќРµ РЅР°С€Р»Рё
 	}	
 
-	// --------- Шаблонные реализации обходов --------- //
+	// --------- РЁР°Р±Р»РѕРЅРЅС‹Рµ СЂРµР°Р»РёР·Р°С†РёРё РѕР±С…РѕРґРѕРІ --------- //
 	template<typename Action>
 	void inorder_impl(Action&& action) const {
 		if (!root) return;
@@ -431,7 +431,7 @@ protected:
 
 			current = stack.top();
 			stack.pop();
-			action(current->key);  // Вызываем action
+			action(current->key);  // Р’С‹Р·С‹РІР°РµРј action
 
 			current = current->right.get();
 		}
@@ -458,7 +458,7 @@ protected:
 	void postorder_impl(Action&& action) const {
 		if (!root) return;
 
-		// Два стека
+		// Р”РІР° СЃС‚РµРєР°
 		std::stack<const Node*> stack1, stack2;
 		stack1.push(root.get());
 
@@ -486,7 +486,7 @@ protected:
 
 		while (!current_lvl.empty()) {
 			std::vector<const Node*> next_lvl;
-			next_lvl.reserve(current_lvl.size() * 2);  // Оптимизация
+			next_lvl.reserve(current_lvl.size() * 2);  // РћРїС‚РёРјРёР·Р°С†РёСЏ
 
 			for (const Node* node : current_lvl) {
 				action(node->key);
@@ -499,14 +499,14 @@ protected:
 		}
 	}
 
-	//-------------- Общие служебные функции ---------//
+	//-------------- РћР±С‰РёРµ СЃР»СѓР¶РµР±РЅС‹Рµ С„СѓРЅРєС†РёРё ---------//
 
-	//служебная функция копирования дерева (рекурсивная)
+	//СЃР»СѓР¶РµР±РЅР°СЏ С„СѓРЅРєС†РёСЏ РєРѕРїРёСЂРѕРІР°РЅРёСЏ РґРµСЂРµРІР° (СЂРµРєСѓСЂСЃРёРІРЅР°СЏ)
 	static std::unique_ptr<Node> clone(const Node* source) {
 		if (!source) return nullptr;
 
 		auto new_node = std::make_unique<Node>(source->key);
-		new_node->priority = source->priority;  // копируем приоритет
+		new_node->priority = source->priority;  // РєРѕРїРёСЂСѓРµРј РїСЂРёРѕСЂРёС‚РµС‚
 
 		new_node->left = clone(source->left.get());
 		new_node->right = clone(source->right.get());
@@ -515,27 +515,27 @@ protected:
 	}
 
 	std::unique_ptr<Node> insert_impl(std::unique_ptr<Node> node, const T& key) {
-		// Если дерево пустое - просто создаем новый узел
+		// Р•СЃР»Рё РґРµСЂРµРІРѕ РїСѓСЃС‚РѕРµ - РїСЂРѕСЃС‚Рѕ СЃРѕР·РґР°РµРј РЅРѕРІС‹Р№ СѓР·РµР»
 		if (!node) {
 			++node_count;
 			return std::make_unique<Node>(key);
 		}
 
-		// Разделяем
+		// Р Р°Р·РґРµР»СЏРµРј
 		auto [left, right] = split(std::move(node), key);
 
-		// Создаем и объединяем
+		// РЎРѕР·РґР°РµРј Рё РѕР±СЉРµРґРёРЅСЏРµРј
 		auto new_node = std::make_unique<Node>(key);
 		++node_count;
 
-		// Объединяем левое дерево с новым элементом и потом все вместе с правым деревом
+		// РћР±СЉРµРґРёРЅСЏРµРј Р»РµРІРѕРµ РґРµСЂРµРІРѕ СЃ РЅРѕРІС‹Рј СЌР»РµРјРµРЅС‚РѕРј Рё РїРѕС‚РѕРј РІСЃРµ РІРјРµСЃС‚Рµ СЃ РїСЂР°РІС‹Рј РґРµСЂРµРІРѕРј
 		return merge(merge(std::move(left), std::move(new_node)), std::move(right));
 	}
 
-	//--------------Удаление --------------------//
+	//--------------РЈРґР°Р»РµРЅРёРµ --------------------//
 
-	//Специализации функции получения следующего ключа
-	// Для integral
+	//РЎРїРµС†РёР°Р»РёР·Р°С†РёРё С„СѓРЅРєС†РёРё РїРѕР»СѓС‡РµРЅРёСЏ СЃР»РµРґСѓСЋС‰РµРіРѕ РєР»СЋС‡Р°
+	// Р”Р»СЏ integral
 	template<typename U = T>
 		requires std::integral<U>
 	static U get_next_key(const U& key) {
@@ -543,18 +543,18 @@ protected:
 		return key + 1;
 	}
 
-	// Для std::string
+	// Р”Р»СЏ std::string
 	template<typename U = T>
 		requires std::same_as<U, std::string>
 	static U get_next_key(const U& key) {
 		if (key.empty()) return "\x00";
 
 		std::string result = key;
-		// Находим последний символ, который можно увеличить
+		// РќР°С…РѕРґРёРј РїРѕСЃР»РµРґРЅРёР№ СЃРёРјРІРѕР», РєРѕС‚РѕСЂС‹Р№ РјРѕР¶РЅРѕ СѓРІРµР»РёС‡РёС‚СЊ
 		for (auto it = result.rbegin(); it != result.rend(); ++it) {
 			if (*it != std::numeric_limits<unsigned char>::max()) {
 				++(*it);
-				// Обнуляем все символы справа
+				// РћР±РЅСѓР»СЏРµРј РІСЃРµ СЃРёРјРІРѕР»С‹ СЃРїСЂР°РІР°
 				for (auto reset_it = result.rbegin(); reset_it != it; ++reset_it) {
 					*reset_it = '\x00';
 				}
@@ -562,11 +562,11 @@ protected:
 			}
 		}
 
-		// Все символы на максимуме - добавляем нулевой байт
+		// Р’СЃРµ СЃРёРјРІРѕР»С‹ РЅР° РјР°РєСЃРёРјСѓРјРµ - РґРѕР±Р°РІР»СЏРµРј РЅСѓР»РµРІРѕР№ Р±Р°Р№С‚
 		return key + '\x00';
 	}
 
-	// Для остальных типов - static_assert
+	// Р”Р»СЏ РѕСЃС‚Р°Р»СЊРЅС‹С… С‚РёРїРѕРІ - static_assert
 	template<typename U = T>
 	static U get_next_key(const U& key) {
 		static_assert(
@@ -577,42 +577,42 @@ protected:
 		return key;
 	}
 
-	//собственно реализация удаления
+	//СЃРѕР±СЃС‚РІРµРЅРЅРѕ СЂРµР°Р»РёР·Р°С†РёСЏ СѓРґР°Р»РµРЅРёСЏ
 	std::unique_ptr<Node> remove_impl(std::unique_ptr<Node> node, const T& key) {
-		// 1. Разделяем на < key и >= key
+		// 1. Р Р°Р·РґРµР»СЏРµРј РЅР° < key Рё >= key
 		auto [left, middle_right] = split(std::move(node), key);
 
 		if (!middle_right) {
-			// key не найден
+			// key РЅРµ РЅР°Р№РґРµРЅ
 			return std::move(left);
 		}
 
-		// Если key не максимальное значение в диапазоне
+		// Р•СЃР»Рё key РЅРµ РјР°РєСЃРёРјР°Р»СЊРЅРѕРµ Р·РЅР°С‡РµРЅРёРµ РІ РґРёР°РїР°Р·РѕРЅРµ
 		auto next_key = get_next_key(key);
 		if (next_key != key) {
-			// Разделяем middle_right на < next_key и >= next_key
-			// Поскольку middle_right содержит >= key, то < next_key будет только == key
+			// Р Р°Р·РґРµР»СЏРµРј middle_right РЅР° < next_key Рё >= next_key
+			// РџРѕСЃРєРѕР»СЊРєСѓ middle_right СЃРѕРґРµСЂР¶РёС‚ >= key, С‚Рѕ < next_key Р±СѓРґРµС‚ С‚РѕР»СЊРєРѕ == key
 			auto [middle, right] = split(std::move(middle_right), next_key);
 
 			if (middle) {
 				--node_count;
-				// middle должен содержать key
+				// middle РґРѕР»Р¶РµРЅ СЃРѕРґРµСЂР¶Р°С‚СЊ key
 			}
 
 			return merge(std::move(left), std::move(right));
 		}
 
-		// 3. key максимальный - особый случай		
-		// key должен быть корнем middle_right (как наименьший в >= key)
+		// 3. key РјР°РєСЃРёРјР°Р»СЊРЅС‹Р№ - РѕСЃРѕР±С‹Р№ СЃР»СѓС‡Р°Р№		
+		// key РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ РєРѕСЂРЅРµРј middle_right (РєР°Рє РЅР°РёРјРµРЅСЊС€РёР№ РІ >= key)
 		if (middle_right->key == key) {
-			// Нашли! Удаляем корень
+			// РќР°С€Р»Рё! РЈРґР°Р»СЏРµРј РєРѕСЂРµРЅСЊ
 			--node_count;
 			auto right = std::move(middle_right->right);
-			// middle_right (содержащий key) уничтожится
+			// middle_right (СЃРѕРґРµСЂР¶Р°С‰РёР№ key) СѓРЅРёС‡С‚РѕР¶РёС‚СЃСЏ
 			return merge(std::move(left), std::move(right));
 		}
 		else {
-			// key нет, хотя он максимальный
+			// key РЅРµС‚, С…РѕС‚СЏ РѕРЅ РјР°РєСЃРёРјР°Р»СЊРЅС‹Р№
 			return merge(std::move(left), std::move(middle_right));
 		}
 	}	
@@ -621,6 +621,6 @@ protected:
 	std::unique_ptr<Node> root = nullptr;
 	size_t node_count = 0;
 
-	// Данные для стратегий
+	// Р”Р°РЅРЅС‹Рµ РґР»СЏ СЃС‚СЂР°С‚РµРіРёР№
 	size_t operations_since_rebuild = 0;	
 };
